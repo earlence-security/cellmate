@@ -1,0 +1,11 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "user",
+            "~key",
+            "~personal_access_token"
+        ]
+    },
+    "description": "Allow write access to user profile, except for sensitive information including keys and personal access tokens."
+}

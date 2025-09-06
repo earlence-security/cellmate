@@ -1,0 +1,126 @@
+[
+  {
+    "action": "Create new issue note",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/issues/:issue_iid/notes"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "issue_iid": {
+          "type": "integer",
+          "description": "IID of the issue.",
+          "required": true
+        },
+        "body": {
+          "type": "string",
+          "description": "Content of the note (up to 1,000,000 characters).",
+          "required": true
+        },
+        "confidential": {
+          "type": "boolean",
+          "description": "Deprecated; use internal. Confidential flag of the note. Default false.",
+          "required": false
+        },
+        "internal": {
+          "type": "boolean",
+          "description": "Internal flag of the note. Overrides confidential when both provided. Default false.",
+          "required": false
+        },
+        "created_at": {
+          "type": "string",
+          "description": "Creation timestamp in ISO 8601 format (after 1970-01-01). Requires admin or project/group owner.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "createWorkItemNote"
+      }
+    }
+  },
+  {
+    "action": "Modify existing issue note",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id/issues/:issue_iid/notes/:note_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "issue_iid": {
+          "type": "integer",
+          "description": "IID of the issue.",
+          "required": true
+        },
+        "note_id": {
+          "type": "integer",
+          "description": "ID of the note.",
+          "required": true
+        },
+        "body": {
+          "type": "string",
+          "description": "Content of the note (up to 1,000,000 characters).",
+          "required": false
+        },
+        "confidential": {
+          "type": "boolean",
+          "description": "Deprecated. Confidential flag of the note. Default false.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "updateWorkItemNote"
+      }
+    }
+  },
+  {
+    "action": "Delete an issue note",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id/issues/:issue_iid/notes/:note_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "issue_iid": {
+          "type": "integer",
+          "description": "IID of the issue.",
+          "required": true
+        },
+        "note_id": {
+          "type": "integer",
+          "description": "ID of the note.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "deleteWorkItemNote"
+      }
+    }
+  }
+]

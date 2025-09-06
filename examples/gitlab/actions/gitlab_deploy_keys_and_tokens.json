@@ -1,0 +1,191 @@
+[
+  {
+    "action": "List deploy keys for project",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/deploy_keys"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/deploy_keys/*",
+      "example_urls": [
+        "https://gitlab.com/macaroon777sweet/test/-/deploy_keys/enabled_keys?page=1&per_page=5",
+        "https://gitlab.com/macaroon777sweet/test/-/deploy_keys/available_project_keys?page=1&per_page=5"
+      ]
+    }
+  },
+  {
+    "action": "Add deploy key for a project",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/deploy_keys"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "key": {
+          "type": "string",
+          "description": "New deploy key.",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "description": "New deploy key’s title.",
+          "required": true
+        },
+        "can_push": {
+          "type": "boolean",
+          "description": "Whether the deploy key can push to the project’s repository.",
+          "required": false
+        },
+        "expires_at": {
+          "type": "datetime",
+          "description": "Expiration date for the deploy key in ISO 8601 format. Does not expire if not provided.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/deploy_keys"
+    }
+  },
+  {
+    "action": "Update deploy key",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id/deploy_keys/:key_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "key_id": {
+          "type": "integer",
+          "description": "The ID of the deploy key.",
+          "required": true
+        },
+        "can_push": {
+          "type": "boolean",
+          "description": "Whether the deploy key can push to the project’s repository.",
+          "required": false
+        },
+        "title": {
+          "type": "string",
+          "description": "New deploy key’s title.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/deploy_keys/{key_id}"
+    }
+  },
+  {
+    "action": "Delete deploy key",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id/deploy_keys/:key_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "key_id": {
+          "type": "integer",
+          "description": "The ID of the deploy key.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "PUT",
+      "url": "https://gitlab.com/{group}/{project}/-/deploy_keys/{key_id}/disable"
+    }
+  },
+  {
+    "action": "Create a project deploy token",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/deploy_tokens"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "New deploy token’s name.",
+          "required": true
+        },
+        "scopes": {
+          "type": "array of strings",
+          "description": "Deploy token scopes. Must include at least one of: read_repository, read_registry, write_registry, read_package_registry, write_package_registry, read_virtual_registry, write_virtual_registry.",
+          "required": true
+        },
+        "expires_at": {
+          "type": "datetime",
+          "description": "Expiration date for the deploy token in ISO 8601 format. Does not expire if not provided.",
+          "required": false
+        },
+        "username": {
+          "type": "string",
+          "description": "Username for the deploy token. Defaults to gitlab+deploy-token-{n}.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/settings/repository/deploy_token/create"
+    }
+  },
+  {
+    "action": "Delete a project deploy token",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id/deploy_tokens/:token_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "token_id": {
+          "type": "integer",
+          "description": "ID of the deploy token.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/deploy_tokens/{token_id}/revoke"
+    }
+  }
+]

@@ -1,0 +1,545 @@
+[
+  {
+    "action": "List repository tree",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/repository/tree"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "page_token": {
+          "type": "string",
+          "description": "The tree record ID at which to fetch the next page. Used only with keyset pagination.",
+          "required": false
+        },
+        "pagination": {
+          "type": "string",
+          "description": "If 'keyset', use the keyset-based pagination method.",
+          "required": false
+        },
+        "path": {
+          "type": "string",
+          "description": "The path inside the repository. Used to get content of subdirectories.",
+          "required": false
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Number of results to show per page. Defaults to 20 if not specified.",
+          "required": false
+        },
+        "recursive": {
+          "type": "boolean",
+          "description": "Get a recursive tree. Default is false.",
+          "required": false
+        },
+        "ref": {
+          "type": "string",
+          "description": "The name of a repository branch or tag or, if not given, the default branch.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/tree/{branch}",
+      "children": [
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "pathLastCommit"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getProjectDetails"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getPaginatedTree"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getPermalinkPath"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getPermissions"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getWorkspacesNamespaceClusterAgents"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getWorkspacesOrganizationClusterAgents"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getAsyncSuperSidebarData"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getCustomEmoji"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/{group}/{project}/-/refs/{branch}/logs_tree/*",
+          "example_urls": [
+            "https://gitlab.com/macaroon777sweet/test/-/refs/main/logs_tree/?format=json&offset=0"
+          ]
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/-/track_namespace_visits"
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/branches*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/repository/branches?search=&per_page=20&sort=updated_desc"
+          ]
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/tags*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/repository/tags?search=&per_page=20"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "action": "Compare branches, tags or commits",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/repository/compare"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "from": {
+          "type": "string",
+          "description": "The commit SHA or branch name to compare from.",
+          "required": true
+        },
+        "to": {
+          "type": "string",
+          "description": "The commit SHA or branch name to compare to.",
+          "required": true
+        },
+        "from_project_id": {
+          "type": "integer",
+          "description": "Project ID to compare from.",
+          "required": false
+        },
+        "straight": {
+          "type": "boolean",
+          "description": "Comparison method: true for direct comparison (from..to), false to compare using merge base (from…to). Default is false.",
+          "required": false
+        },
+        "unidiff": {
+          "type": "boolean",
+          "description": "Present diffs in the unified diff format. Default is false.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/compare",
+      "body": {
+        "from": "{from}",
+        "to": "{to}",
+        "from_project_id": "{from_project_id}",
+        "straight": "{straight}",
+        "unidiff": "{unidiff}"
+      }
+    }
+  },
+  {
+    "action": "Get contributor list",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/repository/contributors"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "ref": {
+          "type": "string",
+          "description": "The name of a repository branch or tag. If not given, uses the default branch.",
+          "required": false
+        },
+        "order_by": {
+          "type": "string",
+          "description": "Order contributors by 'name', 'email', or 'commits'. If not specified, contributors are ordered by commit date.",
+          "required": false
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort order: 'asc' or 'desc'. Default is 'asc'.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/graphs/main"
+    }
+  },
+  {
+    "action": "Get file from repository",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/repository/files/:file_path"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "file_path": {
+          "type": "string",
+          "description": "URL-encoded full path to the file, such as 'lib%2Fclass%2Erb'.",
+          "required": true
+        },
+        "ref": {
+          "type": "string",
+          "description": "The name of branch, tag or commit. Use 'HEAD' to automatically use the default branch.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/blob/{branch}/{file_path}*",
+      "children": [
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getBlobInfo"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getBlobControls"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/branches*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/repository/branches?search=&per_page=20&sort=updated_desc"
+          ]
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/tags*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/repository/tags?search=&per_page=20"
+          ]
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/{group}/{project}/-/commits/{commit_id}/signatures*",
+          "example_urls": [
+            "https://gitlab.com/macaroon777sweet/test/-/commits/15d8130446427177fe0a50c179ba39c4903d54f5/signatures?limit=1"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "action": "Get file blame from repository",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/repository/files/:file_path/blame"
+      ],
+      "params": {
+        "file_path": {
+          "type": "string",
+          "description": "URL-encoded full path to the file, such as 'lib%2Fclass%2Erb'.",
+          "required": true
+        },
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "range[end]": {
+          "type": "integer",
+          "description": "The last line of the range to blame.",
+          "required": true
+        },
+        "range[start]": {
+          "type": "integer",
+          "description": "The first line of the range to blame.",
+          "required": true
+        },
+        "ref": {
+          "type": "string",
+          "description": "The name of branch, tag or commit. Use 'HEAD' to automatically use the default branch.",
+          "required": true
+        },
+        "range": {
+          "type": "hash",
+          "description": "Blame range object.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/blame/{branch}/{file_path}*"
+    }
+  },
+  {
+    "action": "Create new file in repository",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/repository/files/:file_path"
+      ],
+      "params": {
+        "branch": {
+          "type": "string",
+          "description": "Name of the new branch to create. The commit is added to this branch.",
+          "required": true
+        },
+        "commit_message": {
+          "type": "string",
+          "description": "The commit message.",
+          "required": true
+        },
+        "content": {
+          "type": "string",
+          "description": "The file’s content.",
+          "required": true
+        },
+        "file_path": {
+          "type": "string",
+          "description": "URL-encoded full path to the new file. For example: 'lib%2Fclass%2Erb'.",
+          "required": true
+        },
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "author_email": {
+          "type": "string",
+          "description": "The commit author’s email address.",
+          "required": false
+        },
+        "author_name": {
+          "type": "string",
+          "description": "The commit author’s name.",
+          "required": false
+        },
+        "encoding": {
+          "type": "string",
+          "description": "Change encoding to 'base64'. Default is 'text'.",
+          "required": false
+        },
+        "execute_filemode": {
+          "type": "boolean",
+          "description": "Enable or disable the execute flag on the file.",
+          "required": false
+        },
+        "start_branch": {
+          "type": "string",
+          "description": "Name of the base branch to create the new branch from.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/create/{branch}/{dir_path}",
+      "body": {
+        "content": "{content}",
+        "commit_message": "{commit_message}",
+        "file_name": "{file_path}"
+      }
+    }
+  },
+  {
+    "action": "Update existing file in repository",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id/repository/files/:file_path"
+      ],
+      "params": {
+        "branch": {
+          "type": "string",
+          "description": "Name of the new branch to create. The commit is added to this branch.",
+          "required": true
+        },
+        "commit_message": {
+          "type": "string",
+          "description": "The commit message.",
+          "required": true
+        },
+        "content": {
+          "type": "string",
+          "description": "The file’s content.",
+          "required": true
+        },
+        "file_path": {
+          "type": "string",
+          "description": "URL-encoded full path to the file. For example: 'lib%2Fclass%2Erb'.",
+          "required": true
+        },
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "author_email": {
+          "type": "string",
+          "description": "The commit author’s email address.",
+          "required": false
+        },
+        "author_name": {
+          "type": "string",
+          "description": "The commit author’s name.",
+          "required": false
+        },
+        "encoding": {
+          "type": "string",
+          "description": "Change encoding to 'base64'. Default is 'text'.",
+          "required": false
+        },
+        "execute_filemode": {
+          "type": "boolean",
+          "description": "Enable or disable the execute flag on the file.",
+          "required": false
+        },
+        "last_commit_id": {
+          "type": "string",
+          "description": "Last known file commit ID.",
+          "required": false
+        },
+        "start_branch": {
+          "type": "string",
+          "description": "Name of the base branch to create the new branch from.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "PUT",
+      "url": "https://gitlab.com/{group}/{project}/-/update/{branch}/{file_path}",
+      "body": {
+        "file_path": "{file_path}",
+        "file": "{content}",
+        "commit_message": "{commit_message}"
+      }
+    }
+  },
+  {
+    "action": "Delete existing file in repository",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id/repository/files/:file_path"
+      ],
+      "params": {
+        "branch": {
+          "type": "string",
+          "description": "Name of the new branch to create. The commit is added to this branch.",
+          "required": true
+        },
+        "commit_message": {
+          "type": "string",
+          "description": "The commit message.",
+          "required": true
+        },
+        "file_path": {
+          "type": "string",
+          "description": "URL-encoded full path to the file. For example: 'lib%2Fclass%2Erb'.",
+          "required": true
+        },
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "author_email": {
+          "type": "string",
+          "description": "The commit author’s email address.",
+          "required": false
+        },
+        "author_name": {
+          "type": "string",
+          "description": "The commit author’s name.",
+          "required": false
+        },
+        "last_commit_id": {
+          "type": "string",
+          "description": "Last known file commit ID.",
+          "required": false
+        },
+        "start_branch": {
+          "type": "string",
+          "description": "Name of the base branch to create the new branch from.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/blob/{branch}/{file_path}",
+      "body": {
+        "_method": "delete",
+        "commit_message": "{commit_message}"
+      }
+    }
+  }
+]

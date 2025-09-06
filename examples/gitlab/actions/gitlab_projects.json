@@ -1,0 +1,1521 @@
+[
+  {
+    "action": "Get a single project",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer|string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "license": {
+          "type": "boolean",
+          "description": "Include project license data.",
+          "required": false
+        },
+        "statistics": {
+          "type": "boolean",
+          "description": "Include project statistics. Available only to users with at least the Reporter role.",
+          "required": false
+        },
+        "with_custom_attributes": {
+          "type": "boolean",
+          "description": "Include custom attributes in response (administrators only).",
+          "required": false
+        }
+      },
+      "responses": {
+        "notes": [
+          "Response includes project details such as description, visibility, URLs, namespace, permissions, and configuration settings.",
+          "Includes container registry attributes like `container_registry_size`.",
+          "If the project is a fork, response contains `forked_from_project` object.",
+          "GitLab Ultimate users (15.5+) also see `only_allow_merge_if_all_status_checks_passed`.",
+          "Deprecated fields: `tag_list`, `container_registry_enabled`, `approvals_before_merge`, `marked_for_deletion_at`."
+        ]
+      }
+    },
+    "request": {
+      "url": "https://gitlab.com/api/graphql",
+      "method": "POST",
+      "body": {
+        "operationName": "getProjectDetails"
+      },
+      "children": [
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "pathLastCommit"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getProjectDetails"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getPaginatedTree"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getPermalinkPath"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getPermissions"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getWorkspacesNamespaceClusterAgents"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getWorkspacesOrganizationClusterAgents"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getAsyncSuperSidebarData"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getCustomEmoji"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/commits*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/repository/commits?ref_name=main&per_page=20&page=1"
+          ]
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/hooks*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/hooks?page=1&per_page=20"
+          ]
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/members/all*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/members/all?per_page=20&page=1"
+          ]
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/{group}/{project}/-/refs/{branch}/logs_tree/*",
+          "example_urls": [
+            "https://gitlab.com/macaroon777sweet/test/-/refs/main/logs_tree/?format=json&offset=0"
+          ]
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/-/track_namespace_visits"
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/branches*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/repository/branches?search=&per_page=20&sort=updated_desc"
+          ]
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/tags*",
+          "example_urls": [
+            "https://gitlab.com/api/v4/projects/73205083/repository/tags?search=&per_page=20"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "action": "List all projects",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects"
+      ],
+      "params": {
+        "archived": {
+          "type": "boolean",
+          "description": "Limit by archived status.",
+          "required": false
+        },
+        "id_after": {
+          "type": "integer",
+          "description": "Limit results to projects with IDs greater than the specified ID.",
+          "required": false
+        },
+        "id_before": {
+          "type": "integer",
+          "description": "Limit results to projects with IDs less than the specified ID.",
+          "required": false
+        },
+        "imported": {
+          "type": "boolean",
+          "description": "Limit results to projects imported from external systems by the current user.",
+          "required": false
+        },
+        "include_hidden": {
+          "type": "boolean",
+          "description": "Include hidden projects (administrators only). Premium and Ultimate only.",
+          "required": false
+        },
+        "include_pending_delete": {
+          "type": "boolean",
+          "description": "Include projects pending deletion (administrators only).",
+          "required": false
+        },
+        "last_activity_after": {
+          "type": "datetime",
+          "description": "Limit results to projects with last activity after the specified time (ISO 8601).",
+          "required": false
+        },
+        "last_activity_before": {
+          "type": "datetime",
+          "description": "Limit results to projects with last activity before the specified time (ISO 8601).",
+          "required": false
+        },
+        "membership": {
+          "type": "boolean",
+          "description": "Limit to projects that the current user is a member of.",
+          "required": false
+        },
+        "min_access_level": {
+          "type": "integer",
+          "description": "Limit to projects where the current user has at least this role (access_level).",
+          "required": false
+        },
+        "order_by": {
+          "type": "string",
+          "description": "Order projects by id, name, path, created_at, updated_at, star_count, last_activity_at, or similarity. Some fields restricted to administrators.",
+          "required": false
+        },
+        "owned": {
+          "type": "boolean",
+          "description": "Limit to projects explicitly owned by the current user.",
+          "required": false
+        },
+        "repository_checksum_failed": {
+          "type": "boolean",
+          "description": "Limit projects where the repository checksum calculation has failed. Premium and Ultimate only.",
+          "required": false
+        },
+        "repository_storage": {
+          "type": "string",
+          "description": "Limit to projects stored on a specific repository_storage (administrators only).",
+          "required": false
+        },
+        "search_namespaces": {
+          "type": "boolean",
+          "description": "Include ancestor namespaces when matching search criteria. Default: false.",
+          "required": false
+        },
+        "search": {
+          "type": "string",
+          "description": "Search projects by path, name, or description (case-insensitive, substring match). Multiple terms separated by + or %20.",
+          "required": false
+        },
+        "simple": {
+          "type": "boolean",
+          "description": "Return limited fields for each project. Default behavior for unauthenticated requests.",
+          "required": false
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort results in asc or desc order. Default: desc.",
+          "required": false
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Limit to projects starred by the current user.",
+          "required": false
+        },
+        "statistics": {
+          "type": "boolean",
+          "description": "Include project statistics (requires Reporter or higher).",
+          "required": false
+        },
+        "topic_id": {
+          "type": "integer",
+          "description": "Limit to projects assigned a specific topic ID.",
+          "required": false
+        },
+        "topic": {
+          "type": "string",
+          "description": "Comma-separated list of topics. Returns projects that match all given topics.",
+          "required": false
+        },
+        "updated_after": {
+          "type": "datetime",
+          "description": "Limit to projects updated after this time (ISO 8601). Requires order_by=updated_at. Introduced in GitLab 15.10.",
+          "required": false
+        },
+        "updated_before": {
+          "type": "datetime",
+          "description": "Limit to projects updated before this time (ISO 8601). Requires order_by=updated_at. Introduced in GitLab 15.10.",
+          "required": false
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Limit by visibility: public, internal, or private.",
+          "required": false
+        },
+        "wiki_checksum_failed": {
+          "type": "boolean",
+          "description": "Limit projects where the wiki checksum calculation has failed. Premium and Ultimate only.",
+          "required": false
+        },
+        "with_custom_attributes": {
+          "type": "boolean",
+          "description": "Include custom attributes in the response (administrators only).",
+          "required": false
+        },
+        "with_issues_enabled": {
+          "type": "boolean",
+          "description": "Limit to projects with issues enabled.",
+          "required": false
+        },
+        "with_merge_requests_enabled": {
+          "type": "boolean",
+          "description": "Limit to projects with merge requests enabled.",
+          "required": false
+        },
+        "with_programming_language": {
+          "type": "string",
+          "description": "Limit to projects that use the specified programming language.",
+          "required": false
+        },
+        "marked_for_deletion_on": {
+          "type": "date",
+          "description": "Filter by date when project was marked for deletion. Introduced in GitLab 17.1. Premium and Ultimate only.",
+          "required": false
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Limit to active projects (not archived and not marked for deletion).",
+          "required": false
+        }
+      },
+      "pagination": {
+        "offset_based": "Up to 50,000 projects",
+        "keyset": "Supports beyond 50,000 projects (order_by=id only)"
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "getYourWorkUserProjects"
+      }
+    }
+  },
+  {
+    "action": "List a user's projects",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/users/:user_id/projects"
+      ],
+      "params": {
+        "user_id": {
+          "type": "string",
+          "description": "The ID or username of the user.",
+          "required": true
+        },
+        "archived": {
+          "type": "boolean",
+          "description": "Limit by archived status.",
+          "required": false
+        },
+        "id_after": {
+          "type": "integer",
+          "description": "Limit results to projects with IDs greater than the specified ID.",
+          "required": false
+        },
+        "id_before": {
+          "type": "integer",
+          "description": "Limit results to projects with IDs less than the specified ID.",
+          "required": false
+        },
+        "membership": {
+          "type": "boolean",
+          "description": "Limit to projects that the current user is a member of.",
+          "required": false
+        },
+        "min_access_level": {
+          "type": "integer",
+          "description": "Limit to projects where the current user has at least this role (access_level).",
+          "required": false
+        },
+        "order_by": {
+          "type": "string",
+          "description": "Order projects by id, name, path, created_at, updated_at, star_count, or last_activity_at. Default: created_at.",
+          "required": false
+        },
+        "owned": {
+          "type": "boolean",
+          "description": "Limit to projects explicitly owned by the current user.",
+          "required": false
+        },
+        "search": {
+          "type": "string",
+          "description": "Search projects by name, path, or description.",
+          "required": false
+        },
+        "simple": {
+          "type": "boolean",
+          "description": "Return limited fields for each project. Without authentication this is the default.",
+          "required": false
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort results in asc or desc order. Default: desc.",
+          "required": false
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Limit to projects starred by the current user.",
+          "required": false
+        },
+        "statistics": {
+          "type": "boolean",
+          "description": "Include project statistics (requires Reporter or higher).",
+          "required": false
+        },
+        "updated_after": {
+          "type": "datetime",
+          "description": "Limit to projects updated after this time (ISO 8601). Introduced in GitLab 15.10.",
+          "required": false
+        },
+        "updated_before": {
+          "type": "datetime",
+          "description": "Limit to projects updated before this time (ISO 8601). Introduced in GitLab 15.10.",
+          "required": false
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Limit by visibility: public, internal, or private.",
+          "required": false
+        },
+        "with_custom_attributes": {
+          "type": "boolean",
+          "description": "Include custom attributes in the response (administrators only).",
+          "required": false
+        },
+        "with_issues_enabled": {
+          "type": "boolean",
+          "description": "Limit to projects with issues enabled.",
+          "required": false
+        },
+        "with_merge_requests_enabled": {
+          "type": "boolean",
+          "description": "Limit to projects with merge requests enabled.",
+          "required": false
+        },
+        "with_programming_language": {
+          "type": "string",
+          "description": "Limit to projects that use the specified programming language.",
+          "required": false
+        }
+      },
+      "pagination": {
+        "keyset": "Supported for selected order_by options"
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/users/{user}/projects*",
+      "example_urls": [
+        "https://gitlab.com/users/macaroon777sweet/projects?skip_namespace=true"
+      ]
+    }
+  },
+  {
+    "action": "Create a project",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects"
+      ],
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "Project name. Required if path is not provided; defaults to path if omitted.",
+          "required": false
+        },
+        "path": {
+          "type": "string",
+          "description": "Repository path (derived from name if omitted). Must not start/end with a special character or contain consecutive special characters.",
+          "required": false
+        },
+        "allow_merge_on_skipped_pipeline": {
+          "type": "boolean",
+          "description": "Allow merging when jobs are skipped.",
+          "required": false
+        },
+        "approvals_before_merge": {
+          "type": "integer",
+          "description": "Number of required approvals by default. Deprecated; use merge request approvals API.",
+          "required": false
+        },
+        "auto_cancel_pending_pipelines": {
+          "type": "string",
+          "description": "Auto-cancel pending pipelines (toggle string; not a boolean).",
+          "required": false
+        },
+        "auto_devops_deploy_strategy": {
+          "type": "string",
+          "description": "Auto Deploy strategy: continuous, manual, or timed_incremental.",
+          "required": false
+        },
+        "auto_devops_enabled": {
+          "type": "boolean",
+          "description": "Enable Auto DevOps.",
+          "required": false
+        },
+        "autoclose_referenced_issues": {
+          "type": "boolean",
+          "description": "Auto-close issues referenced on the default branch.",
+          "required": false
+        },
+        "avatar": {
+          "type": "mixed",
+          "description": "Image file for the project avatar.",
+          "required": false
+        },
+        "build_git_strategy": {
+          "type": "string",
+          "description": "Git strategy for jobs (default: fetch).",
+          "required": false
+        },
+        "build_timeout": {
+          "type": "integer",
+          "description": "Max job run time, in seconds.",
+          "required": false
+        },
+        "ci_config_path": {
+          "type": "string",
+          "description": "Path to CI configuration file.",
+          "required": false
+        },
+        "container_expiration_policy_attributes": {
+          "type": "hash",
+          "description": "Container registry cleanup policy settings (cadence, keep_n, older_than, name_regex, name_regex_delete, name_regex_keep, enabled).",
+          "required": false
+        },
+        "container_registry_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use container_registry_access_level instead.",
+          "required": false
+        },
+        "default_branch": {
+          "type": "string",
+          "description": "Default branch name. Requires initialize_with_readme to be true.",
+          "required": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Short project description.",
+          "required": false
+        },
+        "emails_disabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use emails_enabled instead.",
+          "required": false
+        },
+        "emails_enabled": {
+          "type": "boolean",
+          "description": "Enable email notifications.",
+          "required": false
+        },
+        "external_authorization_classification_label": {
+          "type": "string",
+          "description": "External authorization classification label.",
+          "required": false
+        },
+        "group_runners_enabled": {
+          "type": "boolean",
+          "description": "Enable group runners for this project.",
+          "required": false
+        },
+        "group_with_project_templates_id": {
+          "type": "integer",
+          "description": "Group ID for custom project templates (when use_custom_template is true).",
+          "required": false
+        },
+        "import_url": {
+          "type": "string",
+          "description": "Import repository URL. Must not be set with initialize_with_readme.",
+          "required": false
+        },
+        "initialize_with_readme": {
+          "type": "boolean",
+          "description": "Create repository with an initial README.md (default false). Incompatible with import_url and other content attributes.",
+          "required": false
+        },
+        "issues_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use issues_access_level instead.",
+          "required": false
+        },
+        "jobs_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use builds_access_level instead.",
+          "required": false
+        },
+        "lfs_enabled": {
+          "type": "boolean",
+          "description": "Enable Git LFS.",
+          "required": false
+        },
+        "merge_method": {
+          "type": "string",
+          "description": "Merge method: merge, rebase_merge, or ff.",
+          "required": false
+        },
+        "merge_pipelines_enabled": {
+          "type": "boolean",
+          "description": "Enable merged results pipelines.",
+          "required": false
+        },
+        "merge_requests_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use merge_requests_access_level instead.",
+          "required": false
+        },
+        "merge_trains_enabled": {
+          "type": "boolean",
+          "description": "Enable merge trains.",
+          "required": false
+        },
+        "merge_trains_skip_train_allowed": {
+          "type": "boolean",
+          "description": "Allow skipping the train to merge without waiting for pipelines.",
+          "required": false
+        },
+        "mirror_trigger_builds": {
+          "type": "boolean",
+          "description": "Pull mirroring triggers builds.",
+          "required": false
+        },
+        "mirror": {
+          "type": "boolean",
+          "description": "Enable pull mirroring.",
+          "required": false
+        },
+        "namespace_id": {
+          "type": "integer",
+          "description": "Target namespace (group/subgroup) ID. Defaults to current user’s namespace if omitted.",
+          "required": false
+        },
+        "only_allow_merge_if_all_discussions_are_resolved": {
+          "type": "boolean",
+          "description": "Require all discussions to be resolved before merging.",
+          "required": false
+        },
+        "only_allow_merge_if_all_status_checks_passed": {
+          "type": "boolean",
+          "description": "Block merges unless all status checks pass.",
+          "required": false
+        },
+        "only_allow_merge_if_pipeline_succeeds": {
+          "type": "boolean",
+          "description": "Require successful pipelines before merging.",
+          "required": false
+        },
+        "packages_enabled": {
+          "type": "boolean",
+          "description": "Enable Packages Registry.",
+          "required": false
+        },
+        "printing_merge_request_link_enabled": {
+          "type": "boolean",
+          "description": "Show link to create/view merge requests on push.",
+          "required": false
+        },
+        "public_builds": {
+          "type": "boolean",
+          "description": "Deprecated. Use public_jobs instead.",
+          "required": false
+        },
+        "public_jobs": {
+          "type": "boolean",
+          "description": "Allow non-members to view jobs.",
+          "required": false
+        },
+        "repository_object_format": {
+          "type": "string",
+          "description": "Repository object format (default sha1).",
+          "required": false
+        },
+        "remove_source_branch_after_merge": {
+          "type": "boolean",
+          "description": "Enable Delete source branch by default.",
+          "required": false
+        },
+        "repository_storage": {
+          "type": "string",
+          "description": "Storage shard for the repository (admin only).",
+          "required": false
+        },
+        "request_access_enabled": {
+          "type": "boolean",
+          "description": "Allow users to request access.",
+          "required": false
+        },
+        "resolve_outdated_diff_discussions": {
+          "type": "boolean",
+          "description": "Auto-resolve outdated diff discussions.",
+          "required": false
+        },
+        "shared_runners_enabled": {
+          "type": "boolean",
+          "description": "Enable instance runners for this project.",
+          "required": false
+        },
+        "show_default_award_emojis": {
+          "type": "boolean",
+          "description": "Show default emoji reactions.",
+          "required": false
+        },
+        "snippets_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use snippets_access_level instead.",
+          "required": false
+        },
+        "squash_option": {
+          "type": "string",
+          "description": "Squash options: never, always, default_on, or default_off.",
+          "required": false
+        },
+        "tag_list": {
+          "type": "array",
+          "description": "Deprecated. Use topics instead.",
+          "required": false
+        },
+        "template_name": {
+          "type": "string",
+          "description": "Built-in or custom template name (when using templates).",
+          "required": false
+        },
+        "template_project_id": {
+          "type": "integer",
+          "description": "Project ID of a custom project template.",
+          "required": false
+        },
+        "topics": {
+          "type": "array",
+          "description": "List of topics for the project.",
+          "required": false
+        },
+        "use_custom_template": {
+          "type": "boolean",
+          "description": "Use instance or group custom project template.",
+          "required": false
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Project visibility: private, internal, or public.",
+          "required": false
+        },
+        "warn_about_potentially_unwanted_characters": {
+          "type": "boolean",
+          "description": "Warn on potentially unwanted characters.",
+          "required": false
+        },
+        "wiki_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use wiki_access_level instead.",
+          "required": false
+        },
+        "analytics_access_level": {
+          "type": "string",
+          "description": "Visibility for analytics feature.",
+          "required": false
+        },
+        "builds_access_level": {
+          "type": "string",
+          "description": "Visibility for CI/CD pipelines.",
+          "required": false
+        },
+        "container_registry_access_level": {
+          "type": "string",
+          "description": "Visibility for container registry.",
+          "required": false
+        },
+        "environments_access_level": {
+          "type": "string",
+          "description": "Visibility for environments.",
+          "required": false
+        },
+        "feature_flags_access_level": {
+          "type": "string",
+          "description": "Visibility for feature flags.",
+          "required": false
+        },
+        "forking_access_level": {
+          "type": "string",
+          "description": "Visibility for forks.",
+          "required": false
+        },
+        "infrastructure_access_level": {
+          "type": "string",
+          "description": "Visibility for infrastructure management.",
+          "required": false
+        },
+        "issues_access_level": {
+          "type": "string",
+          "description": "Visibility for issues.",
+          "required": false
+        },
+        "merge_requests_access_level": {
+          "type": "string",
+          "description": "Visibility for merge requests.",
+          "required": false
+        },
+        "model_experiments_access_level": {
+          "type": "string",
+          "description": "Visibility for ML model experiments.",
+          "required": false
+        },
+        "model_registry_access_level": {
+          "type": "string",
+          "description": "Visibility for ML model registry.",
+          "required": false
+        },
+        "monitor_access_level": {
+          "type": "string",
+          "description": "Visibility for application performance monitoring.",
+          "required": false
+        },
+        "pages_access_level": {
+          "type": "string",
+          "description": "Visibility for GitLab Pages.",
+          "required": false
+        },
+        "releases_access_level": {
+          "type": "string",
+          "description": "Visibility for releases.",
+          "required": false
+        },
+        "repository_access_level": {
+          "type": "string",
+          "description": "Visibility for repository.",
+          "required": false
+        },
+        "requirements_access_level": {
+          "type": "string",
+          "description": "Visibility for requirements.",
+          "required": false
+        },
+        "security_and_compliance_access_level": {
+          "type": "string",
+          "description": "Visibility for security and compliance.",
+          "required": false
+        },
+        "snippets_access_level": {
+          "type": "string",
+          "description": "Visibility for snippets.",
+          "required": false
+        },
+        "wiki_access_level": {
+          "type": "string",
+          "description": "Visibility for wiki.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/projects"
+    }
+  },
+  {
+    "action": "Edit a project",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "allow_merge_on_skipped_pipeline": {
+          "type": "boolean",
+          "description": "Allow merging when jobs are skipped.",
+          "required": false
+        },
+        "allow_pipeline_trigger_approve_deployment": {
+          "type": "boolean",
+          "description": "Allow a pipeline triggerer to approve deployments.",
+          "required": false
+        },
+        "only_allow_merge_if_all_status_checks_passed": {
+          "type": "boolean",
+          "description": "Block merges unless all status checks pass.",
+          "required": false
+        },
+        "approvals_before_merge": {
+          "type": "integer",
+          "description": "Default approvals required. Deprecated; use merge request approvals API.",
+          "required": false
+        },
+        "auto_cancel_pending_pipelines": {
+          "type": "string",
+          "description": "Auto-cancel pending pipelines (toggle string).",
+          "required": false
+        },
+        "auto_devops_deploy_strategy": {
+          "type": "string",
+          "description": "Auto Deploy strategy.",
+          "required": false
+        },
+        "auto_devops_enabled": {
+          "type": "boolean",
+          "description": "Enable Auto DevOps.",
+          "required": false
+        },
+        "auto_duo_code_review_enabled": {
+          "type": "boolean",
+          "description": "Enable automatic reviews by GitLab Duo on merge requests.",
+          "required": false
+        },
+        "autoclose_referenced_issues": {
+          "type": "boolean",
+          "description": "Auto-close referenced issues on default branch.",
+          "required": false
+        },
+        "avatar": {
+          "type": "mixed",
+          "description": "Image file for avatar.",
+          "required": false
+        },
+        "build_git_strategy": {
+          "type": "string",
+          "description": "Git strategy for jobs.",
+          "required": false
+        },
+        "build_timeout": {
+          "type": "integer",
+          "description": "Max job run time in seconds.",
+          "required": false
+        },
+        "ci_config_path": {
+          "type": "string",
+          "description": "Path to CI configuration file.",
+          "required": false
+        },
+        "ci_default_git_depth": {
+          "type": "integer",
+          "description": "Default number of revisions for shallow cloning.",
+          "required": false
+        },
+        "ci_delete_pipelines_in_seconds": {
+          "type": "integer",
+          "description": "Delete pipelines older than the configured time (seconds).",
+          "required": false
+        },
+        "ci_forward_deployment_enabled": {
+          "type": "boolean",
+          "description": "Prevent outdated deployment jobs.",
+          "required": false
+        },
+        "ci_forward_deployment_rollback_allowed": {
+          "type": "boolean",
+          "description": "Allow retries for rollback deployments.",
+          "required": false
+        },
+        "ci_allow_fork_pipelines_to_run_in_parent_project": {
+          "type": "boolean",
+          "description": "Allow running pipelines in the parent project for MR from forks.",
+          "required": false
+        },
+        "ci_id_token_sub_claim_components": {
+          "type": "array",
+          "description": "Fields in the sub claim of the ID Token (e.g., [\"project_path\",\"ref_type\",\"ref\"]).",
+          "required": false
+        },
+        "ci_separated_caches": {
+          "type": "boolean",
+          "description": "Separate caches by branch protection status.",
+          "required": false
+        },
+        "ci_restrict_pipeline_cancellation_role": {
+          "type": "string",
+          "description": "Role required to cancel a pipeline or job: developer, maintainer, or no_one.",
+          "required": false
+        },
+        "ci_pipeline_variables_minimum_override_role": {
+          "type": "string",
+          "description": "Role allowed to override pipeline variables: owner, maintainer, developer, or no_one_allowed.",
+          "required": false
+        },
+        "ci_push_repository_for_job_token_allowed": {
+          "type": "boolean",
+          "description": "Allow pushing to repository using job token.",
+          "required": false
+        },
+        "container_expiration_policy_attributes": {
+          "type": "hash",
+          "description": "Container registry cleanup policy settings.",
+          "required": false
+        },
+        "container_registry_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use container_registry_access_level instead.",
+          "required": false
+        },
+        "default_branch": {
+          "type": "string",
+          "description": "Default branch name.",
+          "required": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Short description.",
+          "required": false
+        },
+        "emails_disabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use emails_enabled instead.",
+          "required": false
+        },
+        "emails_enabled": {
+          "type": "boolean",
+          "description": "Enable email notifications.",
+          "required": false
+        },
+        "enforce_auth_checks_on_uploads": {
+          "type": "boolean",
+          "description": "Enforce auth checks on uploads.",
+          "required": false
+        },
+        "external_authorization_classification_label": {
+          "type": "string",
+          "description": "External authorization classification label.",
+          "required": false
+        },
+        "group_runners_enabled": {
+          "type": "boolean",
+          "description": "Enable group runners.",
+          "required": false
+        },
+        "import_url": {
+          "type": "string",
+          "description": "Import source URL.",
+          "required": false
+        },
+        "issues_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use issues_access_level instead.",
+          "required": false
+        },
+        "issues_template": {
+          "type": "string",
+          "description": "Default issue description template (GFM).",
+          "required": false
+        },
+        "jobs_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use builds_access_level instead.",
+          "required": false
+        },
+        "keep_latest_artifact": {
+          "type": "boolean",
+          "description": "Allow keeping the latest artifact.",
+          "required": false
+        },
+        "lfs_enabled": {
+          "type": "boolean",
+          "description": "Enable Git LFS.",
+          "required": false
+        },
+        "max_artifacts_size": {
+          "type": "integer",
+          "description": "Max file size (MB) for individual job artifacts.",
+          "required": false
+        },
+        "merge_commit_template": {
+          "type": "string",
+          "description": "Template for merge commit message.",
+          "required": false
+        },
+        "merge_method": {
+          "type": "string",
+          "description": "Merge method: merge, rebase_merge, or ff.",
+          "required": false
+        },
+        "merge_pipelines_enabled": {
+          "type": "boolean",
+          "description": "Enable merged results pipelines.",
+          "required": false
+        },
+        "merge_requests_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use merge_requests_access_level instead.",
+          "required": false
+        },
+        "merge_requests_template": {
+          "type": "string",
+          "description": "Default merge request description template (GFM).",
+          "required": false
+        },
+        "merge_trains_enabled": {
+          "type": "boolean",
+          "description": "Enable merge trains.",
+          "required": false
+        },
+        "merge_trains_skip_train_allowed": {
+          "type": "boolean",
+          "description": "Allow skipping train to merge without waiting for pipelines.",
+          "required": false
+        },
+        "mirror_overwrites_diverged_branches": {
+          "type": "boolean",
+          "description": "Pull mirror overwrites diverged branches.",
+          "required": false
+        },
+        "mirror_trigger_builds": {
+          "type": "boolean",
+          "description": "Pull mirroring triggers builds.",
+          "required": false
+        },
+        "mirror_user_id": {
+          "type": "integer",
+          "description": "User responsible for pull mirror actions (admin only).",
+          "required": false
+        },
+        "mirror": {
+          "type": "boolean",
+          "description": "Enable pull mirroring.",
+          "required": false
+        },
+        "mr_default_target_self": {
+          "type": "boolean",
+          "description": "For forks, target merge requests to this project; false targets upstream.",
+          "required": false
+        },
+        "name": {
+          "type": "string",
+          "description": "Project name.",
+          "required": false
+        },
+        "only_allow_merge_if_all_discussions_are_resolved": {
+          "type": "boolean",
+          "description": "Require all discussions to be resolved before merging.",
+          "required": false
+        },
+        "only_allow_merge_if_pipeline_succeeds": {
+          "type": "boolean",
+          "description": "Require successful pipelines before merging.",
+          "required": false
+        },
+        "only_mirror_protected_branches": {
+          "type": "boolean",
+          "description": "Mirror only protected branches.",
+          "required": false
+        },
+        "packages_enabled": {
+          "type": "boolean",
+          "description": "Enable Packages Registry.",
+          "required": false
+        },
+        "path": {
+          "type": "string",
+          "description": "Repository path.",
+          "required": false
+        },
+        "prevent_merge_without_jira_issue": {
+          "type": "boolean",
+          "description": "Require associated Jira issue for merge requests.",
+          "required": false
+        },
+        "printing_merge_request_link_enabled": {
+          "type": "boolean",
+          "description": "Show link to create/view merge requests on push.",
+          "required": false
+        },
+        "public_builds": {
+          "type": "boolean",
+          "description": "Deprecated. Use public_jobs instead.",
+          "required": false
+        },
+        "public_jobs": {
+          "type": "boolean",
+          "description": "Allow non-members to view jobs.",
+          "required": false
+        },
+        "remove_source_branch_after_merge": {
+          "type": "boolean",
+          "description": "Enable Delete source branch by default.",
+          "required": false
+        },
+        "repository_storage": {
+          "type": "string",
+          "description": "Storage shard (admin only).",
+          "required": false
+        },
+        "request_access_enabled": {
+          "type": "boolean",
+          "description": "Allow users to request access.",
+          "required": false
+        },
+        "resolve_outdated_diff_discussions": {
+          "type": "boolean",
+          "description": "Auto-resolve outdated diff discussions.",
+          "required": false
+        },
+        "service_desk_enabled": {
+          "type": "boolean",
+          "description": "Enable Service Desk.",
+          "required": false
+        },
+        "shared_runners_enabled": {
+          "type": "boolean",
+          "description": "Enable instance runners.",
+          "required": false
+        },
+        "show_default_award_emojis": {
+          "type": "boolean",
+          "description": "Show default emoji reactions.",
+          "required": false
+        },
+        "snippets_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use snippets_access_level instead.",
+          "required": false
+        },
+        "issue_branch_template": {
+          "type": "string",
+          "description": "Template for branches created from issues.",
+          "required": false
+        },
+        "spp_repository_pipeline_access": {
+          "type": "boolean",
+          "description": "Allow read-only access to fetch security policy configs from this project.",
+          "required": false
+        },
+        "squash_commit_template": {
+          "type": "string",
+          "description": "Template for squash commit message.",
+          "required": false
+        },
+        "squash_option": {
+          "type": "string",
+          "description": "Squash options: never, always, default_on, or default_off.",
+          "required": false
+        },
+        "suggestion_commit_message": {
+          "type": "string",
+          "description": "Commit message used to apply merge request suggestions.",
+          "required": false
+        },
+        "tag_list": {
+          "type": "array",
+          "description": "Deprecated. Use topics instead.",
+          "required": false
+        },
+        "topics": {
+          "type": "array",
+          "description": "List of topics (replaces existing topics).",
+          "required": false
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Project visibility.",
+          "required": false
+        },
+        "warn_about_potentially_unwanted_characters": {
+          "type": "boolean",
+          "description": "Warn on potentially unwanted characters.",
+          "required": false
+        },
+        "web_based_commit_signing_enabled": {
+          "type": "boolean",
+          "description": "Enable web-based commit signing for commits made in the UI (SaaS only).",
+          "required": false
+        },
+        "wiki_enabled": {
+          "type": "boolean",
+          "description": "Deprecated. Use wiki_access_level instead.",
+          "required": false
+        },
+        "analytics_access_level": {
+          "type": "string",
+          "description": "Visibility for analytics feature.",
+          "required": false
+        },
+        "builds_access_level": {
+          "type": "string",
+          "description": "Visibility for CI/CD pipelines.",
+          "required": false
+        },
+        "container_registry_access_level": {
+          "type": "string",
+          "description": "Visibility for container registry.",
+          "required": false
+        },
+        "environments_access_level": {
+          "type": "string",
+          "description": "Visibility for environments.",
+          "required": false
+        },
+        "feature_flags_access_level": {
+          "type": "string",
+          "description": "Visibility for feature flags.",
+          "required": false
+        },
+        "forking_access_level": {
+          "type": "string",
+          "description": "Visibility for forks.",
+          "required": false
+        },
+        "infrastructure_access_level": {
+          "type": "string",
+          "description": "Visibility for infrastructure management.",
+          "required": false
+        },
+        "issues_access_level": {
+          "type": "string",
+          "description": "Visibility for issues.",
+          "required": false
+        },
+        "merge_requests_access_level": {
+          "type": "string",
+          "description": "Visibility for merge requests.",
+          "required": false
+        },
+        "model_experiments_access_level": {
+          "type": "string",
+          "description": "Visibility for ML model experiments.",
+          "required": false
+        },
+        "model_registry_access_level": {
+          "type": "string",
+          "description": "Visibility for ML model registry.",
+          "required": false
+        },
+        "monitor_access_level": {
+          "type": "string",
+          "description": "Visibility for monitoring.",
+          "required": false
+        },
+        "pages_access_level": {
+          "type": "string",
+          "description": "Visibility for Pages.",
+          "required": false
+        },
+        "releases_access_level": {
+          "type": "string",
+          "description": "Visibility for releases.",
+          "required": false
+        },
+        "repository_access_level": {
+          "type": "string",
+          "description": "Visibility for repository.",
+          "required": false
+        },
+        "requirements_access_level": {
+          "type": "string",
+          "description": "Visibility for requirements.",
+          "required": false
+        },
+        "security_and_compliance_access_level": {
+          "type": "string",
+          "description": "Visibility for security and compliance.",
+          "required": false
+        },
+        "snippets_access_level": {
+          "type": "string",
+          "description": "Visibility for snippets.",
+          "required": false
+        },
+        "wiki_access_level": {
+          "type": "string",
+          "description": "Visibility for wiki.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}",
+      "regex": "^https://gitlab\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$",
+      "body": {
+        "_method": "patch"
+      },
+      "resource_types": [
+        "main_frame"
+      ],
+      "priority": 1
+    }
+  },
+  {
+    "action": "Archive a project",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/archive"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project to archive.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/archive",
+      "body": {
+        "_method": "post"
+      }
+    }
+  },
+  {
+    "action": "Unarchive a project",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/unarchive"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project to unarchive.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/unarchive",
+      "body": {
+        "_method": "post"
+      }
+    }
+  },
+  {
+    "action": "Delete a project",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project to delete.",
+          "required": true
+        },
+        "full_path": {
+          "type": "string",
+          "description": "Full path (path_with_namespace) used with permanently_remove.",
+          "required": false
+        },
+        "permanently_remove": {
+          "type": "boolean or string",
+          "description": "Immediately delete if the project is already marked for deletion.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}",
+      "regex": "^https://gitlab\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$",
+      "body": {
+        "_method": "delete"
+      },
+      "resource_types": [
+        "main_frame"
+      ],
+      "priority": 1
+    }
+  },
+  {
+    "action": "Restore a project marked for deletion",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/restore"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/*/restore",
+      "body": {
+        "_method": "post"
+      }
+    }
+  },
+  {
+    "action": "Transfer a project to a new namespace",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id/transfer"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "namespace": {
+          "type": "integer or string",
+          "description": "ID or path of the destination namespace.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/transfer",
+      "body": {
+        "_method": "put"
+      }
+    }
+  }
+]

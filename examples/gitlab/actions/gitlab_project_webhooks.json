@@ -1,0 +1,344 @@
+[
+  {
+    "action": "List webhooks for a project",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/hooks"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/hooks"
+    }
+  },
+  {
+    "action": "Add a webhook to a project",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/hooks"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "url": {
+          "type": "string",
+          "description": "Project webhook URL.",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the project webhook.",
+          "required": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the webhook.",
+          "required": false
+        },
+        "confidential_issues_events": {
+          "type": "boolean",
+          "description": "Trigger on confidential issue events.",
+          "required": false
+        },
+        "confidential_note_events": {
+          "type": "boolean",
+          "description": "Trigger on confidential note events.",
+          "required": false
+        },
+        "deployment_events": {
+          "type": "boolean",
+          "description": "Trigger on deployment events.",
+          "required": false
+        },
+        "enable_ssl_verification": {
+          "type": "boolean",
+          "description": "Enable SSL verification when sending the webhook.",
+          "required": false
+        },
+        "feature_flag_events": {
+          "type": "boolean",
+          "description": "Trigger on feature flag events.",
+          "required": false
+        },
+        "issues_events": {
+          "type": "boolean",
+          "description": "Trigger on issue events.",
+          "required": false
+        },
+        "job_events": {
+          "type": "boolean",
+          "description": "Trigger on job events.",
+          "required": false
+        },
+        "merge_requests_events": {
+          "type": "boolean",
+          "description": "Trigger on merge request events.",
+          "required": false
+        },
+        "note_events": {
+          "type": "boolean",
+          "description": "Trigger on note events.",
+          "required": false
+        },
+        "pipeline_events": {
+          "type": "boolean",
+          "description": "Trigger on pipeline events.",
+          "required": false
+        },
+        "push_events_branch_filter": {
+          "type": "string",
+          "description": "Only trigger on push events for branches that match this filter.",
+          "required": false
+        },
+        "branch_filter_strategy": {
+          "type": "string",
+          "description": "Strategy to filter branches for push events: wildcard (default), regex, or all_branches.",
+          "required": false
+        },
+        "push_events": {
+          "type": "boolean",
+          "description": "Trigger on push events.",
+          "required": false
+        },
+        "releases_events": {
+          "type": "boolean",
+          "description": "Trigger on release events.",
+          "required": false
+        },
+        "milestone_events": {
+          "type": "boolean",
+          "description": "Trigger on milestone events.",
+          "required": false
+        },
+        "tag_push_events": {
+          "type": "boolean",
+          "description": "Trigger on tag push events.",
+          "required": false
+        },
+        "token": {
+          "type": "string",
+          "description": "Secret token used to validate received payloads; not returned in responses.",
+          "required": false
+        },
+        "wiki_page_events": {
+          "type": "boolean",
+          "description": "Trigger on wiki page events.",
+          "required": false
+        },
+        "resource_access_token_events": {
+          "type": "boolean",
+          "description": "Trigger on project access token expiry events.",
+          "required": false
+        },
+        "custom_webhook_template": {
+          "type": "string",
+          "description": "Custom webhook template for the project webhook.",
+          "required": false
+        },
+        "custom_headers": {
+          "type": "array",
+          "description": "Custom headers to include in webhook requests.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/hooks",
+      "body": {
+        "hook[url]": "{webhook_url}",
+        "hook[token]": "{webhook_token}"
+      }
+    }
+  },
+  {
+    "action": "Edit a project webhook",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id/hooks/:hook_id"
+      ],
+      "params": {
+        "hook_id": {
+          "type": "integer",
+          "description": "ID of the project webhook.",
+          "required": true
+        },
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "url": {
+          "type": "string",
+          "description": "Project webhook URL.",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the project webhook.",
+          "required": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the project webhook.",
+          "required": false
+        },
+        "confidential_issues_events": {
+          "type": "boolean",
+          "description": "Trigger on confidential issue events.",
+          "required": false
+        },
+        "confidential_note_events": {
+          "type": "boolean",
+          "description": "Trigger on confidential note events.",
+          "required": false
+        },
+        "deployment_events": {
+          "type": "boolean",
+          "description": "Trigger on deployment events.",
+          "required": false
+        },
+        "enable_ssl_verification": {
+          "type": "boolean",
+          "description": "Enable SSL verification when sending the webhook.",
+          "required": false
+        },
+        "feature_flag_events": {
+          "type": "boolean",
+          "description": "Trigger on feature flag events.",
+          "required": false
+        },
+        "issues_events": {
+          "type": "boolean",
+          "description": "Trigger on issue events.",
+          "required": false
+        },
+        "job_events": {
+          "type": "boolean",
+          "description": "Trigger on job events.",
+          "required": false
+        },
+        "merge_requests_events": {
+          "type": "boolean",
+          "description": "Trigger on merge request events.",
+          "required": false
+        },
+        "note_events": {
+          "type": "boolean",
+          "description": "Trigger on note events.",
+          "required": false
+        },
+        "pipeline_events": {
+          "type": "boolean",
+          "description": "Trigger on pipeline events.",
+          "required": false
+        },
+        "push_events_branch_filter": {
+          "type": "string",
+          "description": "Only trigger on push events for branches that match this filter.",
+          "required": false
+        },
+        "branch_filter_strategy": {
+          "type": "string",
+          "description": "Strategy to filter branches for push events: wildcard (default), regex, or all_branches.",
+          "required": false
+        },
+        "push_events": {
+          "type": "boolean",
+          "description": "Trigger on push events.",
+          "required": false
+        },
+        "releases_events": {
+          "type": "boolean",
+          "description": "Trigger on release events.",
+          "required": false
+        },
+        "milestone_events": {
+          "type": "boolean",
+          "description": "Trigger on milestone events.",
+          "required": false
+        },
+        "tag_push_events": {
+          "type": "boolean",
+          "description": "Trigger on tag push events.",
+          "required": false
+        },
+        "token": {
+          "type": "string",
+          "description": "Secret token to validate payloads; not returned. Changing the webhook URL resets this token.",
+          "required": false
+        },
+        "wiki_page_events": {
+          "type": "boolean",
+          "description": "Trigger on wiki page events.",
+          "required": false
+        },
+        "resource_access_token_events": {
+          "type": "boolean",
+          "description": "Trigger on project access token expiry events.",
+          "required": false
+        },
+        "custom_webhook_template": {
+          "type": "string",
+          "description": "Custom webhook template for the project webhook.",
+          "required": false
+        },
+        "custom_headers": {
+          "type": "array",
+          "description": "Custom headers to include in webhook requests.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/hooks/{hook_id}",
+      "body": {
+        "_method": "patch",
+        "hook[url]": "{webhook_url}",
+        "hook[token]": "{webhook_token}"
+      }
+    }
+  },
+  {
+    "action": "Delete project webhook",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id/hooks/:hook_id"
+      ],
+      "params": {
+        "hook_id": {
+          "type": "integer",
+          "description": "ID of the project webhook.",
+          "required": true
+        },
+        "id": {
+          "type": "integer or string",
+          "description": "ID or URL-encoded path of the project.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/hooks/{hook_id}",
+      "body": {
+        "_method": "delete"
+      }
+    }
+  }
+]

@@ -1,0 +1,115 @@
+[
+  {
+    "action": "Create a personal access token for a user",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/users/:user_id/personal_access_tokens"
+      ],
+      "params": {
+        "user_id": {
+          "type": "integer",
+          "description": "ID of user account.",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of personal access token.",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of personal access token.",
+          "required": false
+        },
+        "expires_at": {
+          "type": "date",
+          "description": "Expiration date of the access token in ISO format (YYYY-MM-DD). If undefined, the date is set to the maximum allowable lifetime limit.",
+          "required": false
+        },
+        "scopes": {
+          "type": "array",
+          "description": "Array of approved scopes. For a list of possible values, see Personal access token scopes.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/-/user_settings/personal_access_tokens*"
+    }
+  },
+  {
+    "action": "List personal access tokens for a user",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/users/:user_id/personal_access_tokens"
+      ],
+      "params": {
+        "user_id": {
+          "type": "integer",
+          "description": "ID of user account.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/api/v4/personal_access_tokens*",
+      "example_urls": [
+        "https://gitlab.com/api/v4/personal_access_tokens?user_id=29327099&sort=expires_asc&page=1&revoked=false&state=inactive"
+      ]
+    }
+  },
+  {
+    "action": "Delete a personal access token for a user",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/users/:user_id/personal_access_tokens/:token_id"
+      ],
+      "params": {
+        "user_id": {
+          "type": "integer",
+          "description": "ID of user account.",
+          "required": true
+        },
+        "token_id": {
+          "type": "integer",
+          "description": "ID of the personal access token.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "DELETE",
+      "url": "https://gitlab.com/api/v4/personal_access_tokens/{token_id}"
+    }
+  },
+  {
+    "action": "Rotate a personal access token for a user",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/users/:user_id/personal_access_tokens/:token_id/rotate"
+      ],
+      "params": {
+        "user_id": {
+          "type": "integer",
+          "description": "ID of user account.",
+          "required": true
+        },
+        "token_id": {
+          "type": "integer",
+          "description": "ID of the personal access token.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/v4/personal_access_tokens/{token_id}/rotate"
+    }
+  }
+]

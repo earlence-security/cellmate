@@ -1,0 +1,9 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "repository"
+        ]
+    },
+    "description": "Grants read-write access to repositories on private projects."
+}

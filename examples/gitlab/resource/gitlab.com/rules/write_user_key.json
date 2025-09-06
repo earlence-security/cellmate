@@ -1,0 +1,11 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "user",
+            "key"
+        ]
+    },
+    "sensitive": true,
+    "description": "Allow read/write access to user keys."
+}

@@ -1,0 +1,79 @@
+[
+  {
+    "action": "List all SSH keys",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/user/keys"
+      ],
+      "params": {}
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/-/user_settings/ssh_keys"
+    }
+  },
+  {
+    "action": "Add an SSH key",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/user/keys"
+      ],
+      "params": {
+        "title": {
+          "type": "string",
+          "description": "Title for key.",
+          "required": true
+        },
+        "key": {
+          "type": "string",
+          "description": "Public key value.",
+          "required": true
+        },
+        "expires_at": {
+          "type": "string",
+          "description": "Expiration date of the key in ISO format (YYYY-MM-DD).",
+          "required": false
+        },
+        "usage_type": {
+          "type": "string",
+          "description": "Usage scope for the key. Possible values: auth, signing or auth_and_signing. Default value: auth_and_signing.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/-/user_settings/ssh_keys"
+    }
+  },
+  {
+    "action": "Delete an SSH key for a user",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/users/:id/keys/:key_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer",
+          "description": "ID of user account.",
+          "required": true
+        },
+        "key_id": {
+          "type": "integer",
+          "description": "ID of existing key.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/-/user_settings/ssh_keys/{key_id}",
+      "body": {
+        "_method": "delete"
+      }
+    }
+  }
+]

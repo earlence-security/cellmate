@@ -1,0 +1,12 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "read",
+            "project",
+            "deploy_key"
+        ]
+    },
+    "sensitive": true,
+    "description": "Allow read access to project deploy keys."
+}

@@ -1,0 +1,11 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "project",
+            "~deploy_key",
+            "~deploy_token"
+        ]
+    },
+    "description": "Allow read/write access to project resources, except for sensitive information including deploy keys and tokens."
+}
