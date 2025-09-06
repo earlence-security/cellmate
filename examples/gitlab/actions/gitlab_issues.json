@@ -1,0 +1,625 @@
+[
+  {
+    "action": "List project issues",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/issues"
+      ],
+      "params": {
+        "id": {
+          "type": "integer/string",
+          "description": "The global ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "assignee_id": {
+          "type": "integer",
+          "description": "Return issues assigned to the given user id. Mutually exclusive with assignee_username. None returns unassigned issues; Any returns issues with an assignee.",
+          "required": false
+        },
+        "assignee_username": {
+          "type": "string array",
+          "description": "Return issues assigned to the given username. Mutually exclusive with assignee_id.",
+          "required": false
+        },
+        "author_id": {
+          "type": "integer",
+          "description": "Return issues created by the given user id. Mutually exclusive with author_username.",
+          "required": false
+        },
+        "author_username": {
+          "type": "string",
+          "description": "Return issues created by the given username. Mutually exclusive with author_id.",
+          "required": false
+        },
+        "confidential": {
+          "type": "boolean",
+          "description": "Filter confidential or public issues.",
+          "required": false
+        },
+        "created_after": {
+          "type": "datetime",
+          "description": "Return issues created on or after the given ISO 8601 time.",
+          "required": false
+        },
+        "created_before": {
+          "type": "datetime",
+          "description": "Return issues created on or before the given ISO 8601 time.",
+          "required": false
+        },
+        "due_date": {
+          "type": "string",
+          "description": "Filter by due date state: 0 (no due date), any, today, tomorrow, overdue, week, month, next_month_and_previous_two_weeks.",
+          "required": false
+        },
+        "epic_id": {
+          "type": "integer",
+          "description": "Return issues associated with the given epic ID. None returns issues not associated with an epic; Any returns issues associated with an epic. Premium and Ultimate only.",
+          "required": false
+        },
+        "iids[]": {
+          "type": "integer array",
+          "description": "Return only the issues having the given iid.",
+          "required": false
+        },
+        "issue_type": {
+          "type": "string",
+          "description": "Filter to a given type of issue. One of issue, incident, test_case, task.",
+          "required": false
+        },
+        "iteration_id": {
+          "type": "integer",
+          "description": "Return issues assigned to the given iteration ID. None returns issues with no iteration; Any returns issues with an iteration. Mutually exclusive with iteration_title. Premium and Ultimate only.",
+          "required": false
+        },
+        "iteration_title": {
+          "type": "string",
+          "description": "Return issues assigned to the iteration with the given title. Mutually exclusive with iteration_id. Premium and Ultimate only.",
+          "required": false
+        },
+        "labels": {
+          "type": "string",
+          "description": "Comma-separated list of label names; issues must have all labels. None lists all issues with no labels; Any lists all issues with at least one label. Predefined names are case-insensitive.",
+          "required": false
+        },
+        "milestone": {
+          "type": "string",
+          "description": "Filter by milestone title. None lists all issues with no milestone; Any lists all issues that have an assigned milestone.",
+          "required": false
+        },
+        "my_reaction_emoji": {
+          "type": "string",
+          "description": "Return issues reacted to by the authenticated user with the given emoji. None returns issues not given a reaction; Any returns issues with at least one reaction.",
+          "required": false
+        },
+        "not": {
+          "type": "object",
+          "description": "Return issues that do not match the supplied parameters. Accepts: labels, milestone, author_id, author_username, assignee_id, assignee_username, my_reaction_emoji, search, in.",
+          "required": false
+        },
+        "order_by": {
+          "type": "string",
+          "description": "Order by one of created_at, updated_at, priority, due_date, relative_position, label_priority, milestone_due, popularity, weight. Default created_at.",
+          "required": false
+        },
+        "scope": {
+          "type": "string",
+          "description": "Return issues for the given scope: created_by_me, assigned_to_me, or all. Default all.",
+          "required": false
+        },
+        "search": {
+          "type": "string",
+          "description": "Search project issues against title and description.",
+          "required": false
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort order: asc or desc. Default desc.",
+          "required": false
+        },
+        "state": {
+          "type": "string",
+          "description": "Return all, opened, or closed issues.",
+          "required": false
+        },
+        "updated_after": {
+          "type": "datetime",
+          "description": "Return issues updated on or after the given ISO 8601 time.",
+          "required": false
+        },
+        "updated_before": {
+          "type": "datetime",
+          "description": "Return issues updated on or before the given ISO 8601 time.",
+          "required": false
+        },
+        "weight": {
+          "type": "integer",
+          "description": "Return issues with the specified weight. None returns issues with no weight; Any returns issues with a weight. Premium and Ultimate only.",
+          "required": false
+        },
+        "with_labels_details": {
+          "type": "boolean",
+          "description": "If true, returns more details for each label: name, color, description, description_html, text_color. Default false.",
+          "required": false
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Parameter used in keyset pagination.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/issues",
+      "children": [
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getIssuesEE"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getIssuesCountEE"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "action": "Single project issue",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/issues/:issue_iid"
+      ],
+      "params": {
+        "id": {
+          "type": "integer/string",
+          "description": "The global ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "issue_iid": {
+          "type": "integer",
+          "description": "The internal ID of a project’s issue.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/issues/*",
+      "example_urls": [
+        "https://gitlab.com/macaroon777sweet/test/-/issues/1",
+        "https://gitlab.com/macaroon777sweet/test/-/issues?show=eyJpaWQiOiI3IiwiZnVsbF9wYXRoIjoibWFjYXJvb243Nzdzd2VldC90ZXN0IiwiaWQiOjE3MjQxMDEwMH0%3D"
+      ],
+      "children": [
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "namespaceWorkItem"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workItemMetadataEE"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getAllowedWorkItemChildTypes"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workspacePermissions"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getWorkItemNotificationsById"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workItemLinkedItems"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "namespaceWorkItemTypes"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getWorkItemDesignList"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workItemTreeQuery"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "projectGenerateDescriptionPermissions"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "namespacePaths"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "projectWorkItemAwardEmojis"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getProjectRootRef"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workItemParticipants"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getAllowedWorkItemParentTypes"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "currentUser"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "getUser"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workItemDevelopment"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workItemNotesByIid"
+          }
+        },
+        {
+          "method": "POST",
+          "url": "https://gitlab.com/api/graphql",
+          "body": {
+            "operationName": "workItemEmailParticipantsByIid"
+          }
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/{group}/{project}/-/issues/{issue_id}/can_create_branch"
+        }
+      ]
+    }
+  },
+  {
+    "action": "New issue",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/issues"
+      ],
+      "params": {
+        "id": {
+          "type": "integer/string",
+          "description": "The global ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "assignee_id": {
+          "type": "integer",
+          "description": "ID of the user to assign the issue to. Only appears on GitLab Free.",
+          "required": false
+        },
+        "assignee_ids": {
+          "type": "integer array",
+          "description": "IDs of users to assign the issue to. Premium and Ultimate only.",
+          "required": false
+        },
+        "confidential": {
+          "type": "boolean",
+          "description": "Set the issue to be confidential. Default false.",
+          "required": false
+        },
+        "created_at": {
+          "type": "string",
+          "description": "When the issue was created. ISO 8601, requires administrator or project/group owner rights.",
+          "required": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the issue. Up to 1,048,576 characters.",
+          "required": false
+        },
+        "discussion_to_resolve": {
+          "type": "string",
+          "description": "ID of a discussion to resolve by creating the issue. Use with merge_request_to_resolve_discussions_of.",
+          "required": false
+        },
+        "due_date": {
+          "type": "string",
+          "description": "Due date in YYYY-MM-DD.",
+          "required": false
+        },
+        "epic_id": {
+          "type": "integer",
+          "description": "ID of the epic to add the issue to. Premium and Ultimate only.",
+          "required": false
+        },
+        "epic_iid": {
+          "type": "integer",
+          "description": "IID of the epic to add the issue to. Deprecated; scheduled for removal in API v5. Premium and Ultimate only.",
+          "required": false
+        },
+        "iid": {
+          "type": "integer/string",
+          "description": "Internal ID of the project’s issue (requires administrator or project owner rights).",
+          "required": false
+        },
+        "issue_type": {
+          "type": "string",
+          "description": "Type of issue. One of issue, incident, test_case, task. Default issue.",
+          "required": false
+        },
+        "labels": {
+          "type": "string",
+          "description": "Comma-separated label names to assign. Creates project labels if they do not exist.",
+          "required": false
+        },
+        "merge_request_to_resolve_discussions_of": {
+          "type": "integer",
+          "description": "IID of a merge request in which to resolve all discussions.",
+          "required": false
+        },
+        "milestone_id": {
+          "type": "integer",
+          "description": "Global ID of a milestone to assign.",
+          "required": false
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the issue.",
+          "required": true
+        },
+        "weight": {
+          "type": "integer",
+          "description": "Weight of the issue. Premium and Ultimate only.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "createWorkItem",
+        "variables": {
+          "input": {
+            "workItemTypeId": "gid://gitlab/WorkItems::Type/1"
+          }
+        }
+      }
+    }
+  },
+  {
+    "action": "Edit an issue",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id/issues/:issue_iid"
+      ],
+      "params": {
+        "id": {
+          "type": "integer/string",
+          "description": "The global ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "issue_iid": {
+          "type": "integer",
+          "description": "The internal ID of a project’s issue.",
+          "required": true
+        },
+        "add_labels": {
+          "type": "string",
+          "description": "Comma-separated label names to add.",
+          "required": false
+        },
+        "assignee_ids": {
+          "type": "integer array",
+          "description": "IDs of users to assign. Set to 0 or empty to unassign all.",
+          "required": false
+        },
+        "confidential": {
+          "type": "boolean",
+          "description": "Update confidentiality.",
+          "required": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the issue. Up to 1,048,576 characters.",
+          "required": false
+        },
+        "discussion_locked": {
+          "type": "boolean",
+          "description": "If true, only project members can add or edit comments.",
+          "required": false
+        },
+        "due_date": {
+          "type": "string",
+          "description": "Due date in YYYY-MM-DD.",
+          "required": false
+        },
+        "epic_id": {
+          "type": "integer",
+          "description": "ID of the epic to add the issue to. Premium and Ultimate only.",
+          "required": false
+        },
+        "epic_iid": {
+          "type": "integer",
+          "description": "IID of the epic to add the issue to. Deprecated; scheduled for removal in API v5. Premium and Ultimate only.",
+          "required": false
+        },
+        "issue_type": {
+          "type": "string",
+          "description": "Update type of issue. One of issue, incident, test_case, task.",
+          "required": false
+        },
+        "labels": {
+          "type": "string",
+          "description": "Comma-separated label names. Set to empty string to unassign all labels. Creates labels if they do not exist.",
+          "required": false
+        },
+        "milestone_id": {
+          "type": "integer",
+          "description": "Global ID of a milestone to assign. Set to 0 or empty to unassign.",
+          "required": false
+        },
+        "remove_labels": {
+          "type": "string",
+          "description": "Comma-separated label names to remove.",
+          "required": false
+        },
+        "state_event": {
+          "type": "string",
+          "description": "State event: close or reopen.",
+          "required": false
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the issue.",
+          "required": false
+        },
+        "updated_at": {
+          "type": "string",
+          "description": "When the issue was updated (ISO 8601). Requires administrator or project owner rights. Empty/null not accepted.",
+          "required": false
+        },
+        "weight": {
+          "type": "integer",
+          "description": "Weight of the issue. Premium and Ultimate only.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "workItemUpdate"
+      }
+    }
+  },
+  {
+    "action": "Delete an issue",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id/issues/:issue_iid"
+      ],
+      "params": {
+        "id": {
+          "type": "integer/string",
+          "description": "The global ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "issue_iid": {
+          "type": "integer",
+          "description": "The internal ID of a project’s issue.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "deleteWorkItem"
+      }
+    }
+  },
+  {
+    "action": "Add a new emoji reaction to an issue",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/issues/:issue_iid/award_emoji"
+      ],
+      "params": {
+        "id": {
+          "type": "integer/string",
+          "description": "The global ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "issue_iid": {
+          "type": "integer",
+          "description": "The internal ID of a project’s issue (use when awarding an emoji on an issue).",
+          "required": false
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the emoji without colons.",
+          "required": true
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/graphql",
+      "body": {
+        "operationName": "updateWorkItemAwardEmojiWidget"
+      }
+    }
+  }
+]

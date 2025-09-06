@@ -1,0 +1,199 @@
+[
+  {
+    "action": "Get the current user (as a regular user)",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/user"
+      ],
+      "params": {}
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/-/user_settings/profile"
+    }
+  },
+  {
+    "action": "Modify a user",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/users/:id"
+      ],
+      "params": {
+        "admin": {
+          "type": "boolean",
+          "description": "User is an administrator.",
+          "required": false
+        },
+        "auditor": {
+          "type": "boolean",
+          "description": "User is an auditor. Premium and Ultimate only.",
+          "required": false
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Image file for user’s avatar.",
+          "required": false
+        },
+        "bio": {
+          "type": "string",
+          "description": "User’s biography.",
+          "required": false
+        },
+        "can_create_group": {
+          "type": "boolean",
+          "description": "User can create groups.",
+          "required": false
+        },
+        "color_scheme_id": {
+          "type": "integer",
+          "description": "User’s color scheme for the file viewer.",
+          "required": false
+        },
+        "commit_email": {
+          "type": "string",
+          "description": "User’s commit email. Set to _private to use the private commit email.",
+          "required": false
+        },
+        "email": {
+          "type": "string",
+          "description": "Primary email of the user (must already be a verified secondary email of the user to change).",
+          "required": false
+        },
+        "extern_uid": {
+          "type": "string",
+          "description": "External UID.",
+          "required": false
+        },
+        "external": {
+          "type": "boolean",
+          "description": "Flags the user as external.",
+          "required": false
+        },
+        "extra_shared_runners_minutes_limit": {
+          "type": "integer",
+          "description": "Additional compute minutes for this user. Premium and Ultimate only.",
+          "required": false
+        },
+        "group_id_for_saml": {
+          "type": "integer",
+          "description": "ID of group where SAML has been configured.",
+          "required": false
+        },
+        "id": {
+          "type": "integer",
+          "description": "ID of the user.",
+          "required": true
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn account.",
+          "required": false
+        },
+        "location": {
+          "type": "string",
+          "description": "User’s location.",
+          "required": false
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the user.",
+          "required": false
+        },
+        "note": {
+          "type": "string",
+          "description": "Administration notes for this user.",
+          "required": false
+        },
+        "organization": {
+          "type": "string",
+          "description": "Organization name.",
+          "required": false
+        },
+        "password": {
+          "type": "string",
+          "description": "The password for the user.",
+          "required": false
+        },
+        "private_profile": {
+          "type": "boolean",
+          "description": "User’s profile is private.",
+          "required": false
+        },
+        "projects_limit": {
+          "type": "integer",
+          "description": "Limit of projects the user can create.",
+          "required": false
+        },
+        "pronouns": {
+          "type": "string",
+          "description": "User’s pronouns.",
+          "required": false
+        },
+        "provider": {
+          "type": "string",
+          "description": "External provider name.",
+          "required": false
+        },
+        "public_email": {
+          "type": "string",
+          "description": "Public email of the user (must already be verified).",
+          "required": false
+        },
+        "shared_runners_minutes_limit": {
+          "type": "integer",
+          "description": "Maximum number of monthly compute minutes for this user (nil to inherit, 0 for unlimited, or > 0). Premium and Ultimate only.",
+          "required": false
+        },
+        "skip_reconfirmation": {
+          "type": "boolean",
+          "description": "Skip reconfirmation.",
+          "required": false
+        },
+        "theme_id": {
+          "type": "integer",
+          "description": "GitLab theme for the user.",
+          "required": false
+        },
+        "twitter": {
+          "type": "string",
+          "description": "X (formerly Twitter) account.",
+          "required": false
+        },
+        "discord": {
+          "type": "string",
+          "description": "Discord account.",
+          "required": false
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub username.",
+          "required": false
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user.",
+          "required": false
+        },
+        "view_diffs_file_by_file": {
+          "type": "boolean",
+          "description": "Flag indicating the user sees only one file diff per page.",
+          "required": false
+        },
+        "website_url": {
+          "type": "string",
+          "description": "Website URL.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/-/user_settings/profile",
+      "body": {
+        "_method": "put"
+      }
+    }
+  }
+]

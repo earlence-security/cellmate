@@ -1,0 +1,180 @@
+[
+  {
+    "action": "List all members of a group or project",
+    "api": {
+      "method": "GET",
+      "endpoints": [
+        "/projects/:id/members"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project or group.",
+          "required": true
+        },
+        "query": {
+          "type": "string",
+          "description": "Filter by name, email, or username (partial values allowed).",
+          "required": false
+        },
+        "user_ids": {
+          "type": "array of integers",
+          "description": "Filter the results on the given user IDs.",
+          "required": false
+        },
+        "skip_users": {
+          "type": "array of integers",
+          "description": "Exclude users with the given user IDs from the results.",
+          "required": false
+        },
+        "show_seat_info": {
+          "type": "boolean",
+          "description": "Show seat information for users.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "GET",
+      "url": "https://gitlab.com/{group}/{project}/-/project_members",
+      "children": [
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/users/{user_id}"
+        },
+        {
+          "method": "GET",
+          "url": "https://gitlab.com/api/v4/users/{user_id}/status"
+        }
+      ]
+    }
+  },
+  {
+    "action": "Add a member to a group or project",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/members"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project or group.",
+          "required": true
+        },
+        "user_id": {
+          "type": "integer or string",
+          "description": "The user ID of the new member, or multiple IDs separated by commas. Required if 'username' is not provided.",
+          "required": false
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the new member, or multiple usernames separated by commas. Required if 'user_id' is not provided.",
+          "required": false
+        },
+        "access_level": {
+          "type": "integer",
+          "description": "A valid access level.",
+          "required": true
+        },
+        "expires_at": {
+          "type": "string",
+          "description": "Expiration date in format YEAR-MONTH-DAY.",
+          "required": false
+        },
+        "invite_source": {
+          "type": "string",
+          "description": "Source of the invitation that starts the member creation process.",
+          "required": false
+        },
+        "member_role_id": {
+          "type": "integer",
+          "description": "Ultimate only. The ID of a custom member role.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/api/v4/projects/{project_id}/invitations"
+    }
+  },
+  {
+    "action": "Edit a member of a group or project",
+    "api": {
+      "method": "PUT",
+      "endpoints": [
+        "/projects/:id/members/:user_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project or group.",
+          "required": true
+        },
+        "user_id": {
+          "type": "integer",
+          "description": "The user ID of the member.",
+          "required": true
+        },
+        "access_level": {
+          "type": "integer",
+          "description": "A valid access level.",
+          "required": true
+        },
+        "expires_at": {
+          "type": "string",
+          "description": "Expiration date in format YEAR-MONTH-DAY.",
+          "required": false
+        },
+        "member_role_id": {
+          "type": "integer",
+          "description": "Ultimate only. The ID of a custom member role. If omitted, removes all roles.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "PUT",
+      "url": "https://gitlab.com/{group}/{project}/-/project_members/{user_id}"
+    }
+  },
+  {
+    "action": "Remove a member from a group or project",
+    "api": {
+      "method": "DELETE",
+      "endpoints": [
+        "/projects/:id/members/:user_id"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project or group.",
+          "required": true
+        },
+        "user_id": {
+          "type": "integer",
+          "description": "The user ID of the member.",
+          "required": true
+        },
+        "skip_subresources": {
+          "type": "boolean",
+          "description": "Whether to skip deleting the member's direct memberships in subgroups and projects. Default is false.",
+          "required": false
+        },
+        "unassign_issuables": {
+          "type": "boolean",
+          "description": "Whether the removed member should be unassigned from issues or merge requests in the group or project. Default is false.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/-/project_members/{user_id}",
+      "body": {
+        "_method": "delete"
+      }
+    }
+  }
+]

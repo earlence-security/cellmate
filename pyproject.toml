@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cellmate"
+version = "0.1.0"
+description = "Cellmate package for policy enforcement and sandboxing"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ttkbootstrap",
+    "playwright",
+    "flask",
+    "InquirerPy"
+]
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["."]

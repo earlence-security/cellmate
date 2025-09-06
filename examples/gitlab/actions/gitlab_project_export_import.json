@@ -1,0 +1,90 @@
+[
+  {
+    "action": "Schedule an export",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/:id/export"
+      ],
+      "params": {
+        "id": {
+          "type": "integer or string",
+          "description": "The ID or URL-encoded path of the project.",
+          "required": true
+        },
+        "upload[url]": {
+          "type": "string",
+          "description": "The URL to upload the project. Required if the 'upload' parameter is present.",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description": "Overrides the project description.",
+          "required": false
+        },
+        "upload": {
+          "type": "hash",
+          "description": "Hash that contains information to upload the exported project to a web server or S3-compatible platform.",
+          "required": false
+        },
+        "upload[http_method]": {
+          "type": "string",
+          "description": "HTTP method to upload the exported project. Only PUT and POST are allowed. Default is PUT.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/{group}/{project}/export",
+      "body": {
+        "_method": "post"
+      }
+    }
+  },
+  {
+    "action": "Import a file",
+    "api": {
+      "method": "POST",
+      "endpoints": [
+        "/projects/import"
+      ],
+      "params": {
+        "file": {
+          "type": "string",
+          "description": "The file to be uploaded.",
+          "required": true
+        },
+        "path": {
+          "type": "string",
+          "description": "Name and path for new project.",
+          "required": true
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the project to be imported. Defaults to the path of the project if not provided.",
+          "required": false
+        },
+        "namespace": {
+          "type": "integer or string",
+          "description": "The ID or path of the namespace to import the project to. Defaults to the current user’s namespace.",
+          "required": false
+        },
+        "override_params": {
+          "type": "hash",
+          "description": "Supports all fields defined in the Project API. These values take precedence over values defined in the export file.",
+          "required": false
+        },
+        "overwrite": {
+          "type": "boolean",
+          "description": "If a project with the same path exists, determines whether the import overwrites it. Defaults to false.",
+          "required": false
+        }
+      }
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.com/import/gitlab_project"
+    }
+  }
+]

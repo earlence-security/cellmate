@@ -1,0 +1,1360 @@
+[
+    {
+        "category": "gitlab_deploy_keys_and_tokens",
+        "semantic_action": "List deploy keys for project",
+        "url": "https://gitlab.com/{group}/{project}/-/deploy_keys/*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [
+            "https://gitlab.com/macaroon777sweet/test/-/deploy_keys/enabled_keys?page=1&per_page=5",
+            "https://gitlab.com/macaroon777sweet/test/-/deploy_keys/available_project_keys?page=1&per_page=5"
+        ],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_deploy_keys_and_tokens",
+        "semantic_action": "Add deploy key for a project",
+        "url": "https://gitlab.com/{group}/{project}/-/deploy_keys",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_deploy_keys_and_tokens",
+        "semantic_action": "Update deploy key",
+        "url": "https://gitlab.com/{group}/{project}/-/deploy_keys/{key_id}",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_deploy_keys_and_tokens",
+        "semantic_action": "Delete deploy key",
+        "url": "https://gitlab.com/{group}/{project}/-/deploy_keys/{key_id}/disable",
+        "method": "PUT",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_deploy_keys_and_tokens",
+        "semantic_action": "Create a project deploy token",
+        "url": "https://gitlab.com/{group}/{project}/-/settings/repository/deploy_token/create",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_token",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_deploy_keys_and_tokens",
+        "semantic_action": "Delete a project deploy token",
+        "url": "https://gitlab.com/{group}/{project}/-/deploy_tokens/{token_id}/revoke",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_token",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_members",
+        "semantic_action": "List all members of a group or project",
+        "url": "https://gitlab.com/{group}/{project}/-/project_members",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "read"
+        ],
+        "children": [
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/users/{user_id}"
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/users/{user_id}/status"
+            }
+        ],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_members",
+        "semantic_action": "Add a member to a group or project",
+        "url": "https://gitlab.com/api/v4/projects/{project_id}/invitations",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_members",
+        "semantic_action": "Edit a member of a group or project",
+        "url": "https://gitlab.com/{group}/{project}/-/project_members/{user_id}",
+        "method": "PUT",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_members",
+        "semantic_action": "Remove a member from a group or project",
+        "url": "https://gitlab.com/{group}/{project}/-/project_members/{user_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_project_export_import",
+        "semantic_action": "Schedule an export",
+        "url": "https://gitlab.com/{group}/{project}/export",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "export",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_project_export_import",
+        "semantic_action": "Import a file",
+        "url": "https://gitlab.com/import/gitlab_project",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "import",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_project_webhooks",
+        "semantic_action": "List webhooks for a project",
+        "url": "https://gitlab.com/{group}/{project}/-/hooks",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_project_webhooks",
+        "semantic_action": "Add a webhook to a project",
+        "url": "https://gitlab.com/{group}/{project}/-/hooks",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_project_webhooks",
+        "semantic_action": "Edit a project webhook",
+        "url": "https://gitlab.com/{group}/{project}/-/hooks/{hook_id}",
+        "method": "POST",
+        "body": {
+            "_method": "patch"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_project_webhooks",
+        "semantic_action": "Delete project webhook",
+        "url": "https://gitlab.com/{group}/{project}/-/hooks/{hook_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Get a single project",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "getProjectDetails"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "read"
+        ],
+        "children": [
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "pathLastCommit"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getProjectDetails"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getPaginatedTree"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getPermalinkPath"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getPermissions"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getWorkspacesNamespaceClusterAgents"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getWorkspacesOrganizationClusterAgents"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getAsyncSuperSidebarData"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getCustomEmoji"
+                }
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/commits*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/repository/commits?ref_name=main&per_page=20&page=1"
+                ]
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/hooks*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/hooks?page=1&per_page=20"
+                ]
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/members/all*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/members/all?per_page=20&page=1"
+                ]
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/{group}/{project}/-/refs/{branch}/logs_tree/*",
+                "example_urls": [
+                    "https://gitlab.com/macaroon777sweet/test/-/refs/main/logs_tree/?format=json&offset=0"
+                ]
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/-/track_namespace_visits"
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/branches*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/repository/branches?search=&per_page=20&sort=updated_desc"
+                ]
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/tags*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/repository/tags?search=&per_page=20"
+                ]
+            }
+        ],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "List all projects",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "getYourWorkUserProjects"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "List a user's projects",
+        "url": "https://gitlab.com/users/{user}/projects*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "project",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [
+            "https://gitlab.com/users/macaroon777sweet/projects?skip_namespace=true"
+        ],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Create a project",
+        "url": "https://gitlab.com/projects",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Edit a project",
+        "url": "https://gitlab.com/{group}/{project}",
+        "method": "POST",
+        "body": {
+            "_method": "patch"
+        },
+        "regex": "^https://gitlab\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$",
+        "resource_types": [
+            "main_frame"
+        ],
+        "tags": [
+            "project",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 1
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Archive a project",
+        "url": "https://gitlab.com/{group}/{project}/archive",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "archive",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Unarchive a project",
+        "url": "https://gitlab.com/{group}/{project}/unarchive",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "unarchive",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Delete a project",
+        "url": "https://gitlab.com/{group}/{project}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "^https://gitlab\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$",
+        "resource_types": [
+            "main_frame"
+        ],
+        "tags": [
+            "project",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 1
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Restore a project marked for deletion",
+        "url": "https://gitlab.com/{group}/*/restore",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "restore",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_projects",
+        "semantic_action": "Transfer a project to a new namespace",
+        "url": "https://gitlab.com/{group}/{project}/transfer",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "transfer",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "List repository tree",
+        "url": "https://gitlab.com/{group}/{project}/-/tree/{branch}",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "tree",
+            "read"
+        ],
+        "children": [
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "pathLastCommit"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getProjectDetails"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getPaginatedTree"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getPermalinkPath"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getPermissions"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getWorkspacesNamespaceClusterAgents"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getWorkspacesOrganizationClusterAgents"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getAsyncSuperSidebarData"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getCustomEmoji"
+                }
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/{group}/{project}/-/refs/{branch}/logs_tree/*",
+                "example_urls": [
+                    "https://gitlab.com/macaroon777sweet/test/-/refs/main/logs_tree/?format=json&offset=0"
+                ]
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/-/track_namespace_visits"
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/branches*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/repository/branches?search=&per_page=20&sort=updated_desc"
+                ]
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/tags*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/repository/tags?search=&per_page=20"
+                ]
+            }
+        ],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "Compare branches, tags or commits",
+        "url": "https://gitlab.com/{group}/{project}/-/compare",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "compare",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "Get contributor list",
+        "url": "https://gitlab.com/{group}/{project}/-/graphs/main",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "contributors",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "Get file from repository",
+        "url": "https://gitlab.com/{group}/{project}/-/blob/{branch}/{file_path}*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "read"
+        ],
+        "children": [
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getBlobInfo"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getBlobControls"
+                }
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/branches*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/repository/branches?search=&per_page=20&sort=updated_desc"
+                ]
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/api/v4/projects/{project_id}/repository/tags*",
+                "example_urls": [
+                    "https://gitlab.com/api/v4/projects/73205083/repository/tags?search=&per_page=20"
+                ]
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/{group}/{project}/-/commits/{commit_id}/signatures*",
+                "example_urls": [
+                    "https://gitlab.com/macaroon777sweet/test/-/commits/15d8130446427177fe0a50c179ba39c4903d54f5/signatures?limit=1"
+                ]
+            }
+        ],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "Get file blame from repository",
+        "url": "https://gitlab.com/{group}/{project}/-/blame/{branch}/{file_path}*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "blame",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "Create new file in repository",
+        "url": "https://gitlab.com/{group}/{project}/-/create/{branch}/{dir_path}",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "Update existing file in repository",
+        "url": "https://gitlab.com/{group}/{project}/-/update/{branch}/{file_path}",
+        "method": "PUT",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_repositories",
+        "semantic_action": "Delete existing file in repository",
+        "url": "https://gitlab.com/{group}/{project}/-/blob/{branch}/{file_path}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_user_keys",
+        "semantic_action": "List all SSH keys",
+        "url": "https://gitlab.com/-/user_settings/ssh_keys",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "key",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_user_keys",
+        "semantic_action": "Add an SSH key",
+        "url": "https://gitlab.com/-/user_settings/ssh_keys",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "key",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_user_keys",
+        "semantic_action": "Delete an SSH key for a user",
+        "url": "https://gitlab.com/-/user_settings/ssh_keys/{key_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "key",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_user_tokens",
+        "semantic_action": "Create a personal access token for a user",
+        "url": "https://gitlab.com/-/user_settings/personal_access_tokens*",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "personal_access_token",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_user_tokens",
+        "semantic_action": "List personal access tokens for a user",
+        "url": "https://gitlab.com/api/v4/personal_access_tokens*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "personal_access_token",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [
+            "https://gitlab.com/api/v4/personal_access_tokens?user_id=29327099&sort=expires_asc&page=1&revoked=false&state=inactive"
+        ],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_user_tokens",
+        "semantic_action": "Delete a personal access token for a user",
+        "url": "https://gitlab.com/api/v4/personal_access_tokens/{token_id}",
+        "method": "DELETE",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "personal_access_token",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_user_tokens",
+        "semantic_action": "Rotate a personal access token for a user",
+        "url": "https://gitlab.com/api/v4/personal_access_tokens/{token_id}/rotate",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "personal_access_token",
+            "rotate",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_users",
+        "semantic_action": "Get the current user (as a regular user)",
+        "url": "https://gitlab.com/-/user_settings/profile",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "read"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_users",
+        "semantic_action": "Modify a user",
+        "url": "https://gitlab.com/-/user_settings/profile",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issues",
+        "semantic_action": "List project issues",
+        "url": "https://gitlab.com/{group}/{project}/-/issues",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "read"
+        ],
+        "children": [
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getIssuesEE"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getIssuesCountEE"
+                }
+            }
+        ],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issues",
+        "semantic_action": "Single project issue",
+        "url": "https://gitlab.com/{group}/{project}/-/issues/*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "read"
+        ],
+        "children": [
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "namespaceWorkItem"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workItemMetadataEE"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getAllowedWorkItemChildTypes"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workspacePermissions"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getWorkItemNotificationsById"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workItemLinkedItems"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "namespaceWorkItemTypes"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getWorkItemDesignList"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workItemTreeQuery"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "projectGenerateDescriptionPermissions"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "namespacePaths"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "projectWorkItemAwardEmojis"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getProjectRootRef"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workItemParticipants"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getAllowedWorkItemParentTypes"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "currentUser"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "getUser"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workItemDevelopment"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workItemNotesByIid"
+                }
+            },
+            {
+                "method": "POST",
+                "url": "https://gitlab.com/api/graphql",
+                "body": {
+                    "operationName": "workItemEmailParticipantsByIid"
+                }
+            },
+            {
+                "method": "GET",
+                "url": "https://gitlab.com/{group}/{project}/-/issues/{issue_id}/can_create_branch"
+            }
+        ],
+        "example_urls": [
+            "https://gitlab.com/macaroon777sweet/test/-/issues/1",
+            "https://gitlab.com/macaroon777sweet/test/-/issues?show=eyJpaWQiOiI3IiwiZnVsbF9wYXRoIjoibWFjYXJvb243Nzdzd2VldC90ZXN0IiwiaWQiOjE3MjQxMDEwMH0%3D"
+        ],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issues",
+        "semantic_action": "New issue",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "createWorkItem",
+            "variables": {
+                "input": {
+                    "workItemTypeId": "gid://gitlab/WorkItems::Type/1"
+                }
+            }
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issues",
+        "semantic_action": "Edit an issue",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "workItemUpdate"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issues",
+        "semantic_action": "Delete an issue",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "deleteWorkItem"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issues",
+        "semantic_action": "Add a new emoji reaction to an issue",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "updateWorkItemAwardEmojiWidget"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "award_emoji",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issue_notes",
+        "semantic_action": "Create new issue note",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "createWorkItemNote"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "note",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issue_notes",
+        "semantic_action": "Modify existing issue note",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "updateWorkItemNote"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "note",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "category": "gitlab_issue_notes",
+        "semantic_action": "Delete an issue note",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "deleteWorkItemNote"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "note",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    }
+]
