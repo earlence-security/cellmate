@@ -350,7 +350,7 @@ class Cellmate:
                 # Send the absolute path of content script to be injected when starting enforcement
                 return jsonify({
                     "operation": self.current_operation,
-                    "content_script_path": os.path.abspath(self.parent.extension_dir_path + "/content.js")
+                    "content_script_path": os.path.abspath(self.parent.storage_dir_path + "/content.js")
                 })
             
             # Otherwise, just return the operation.
@@ -448,7 +448,6 @@ class Cellmate:
             self, 
             storage_dir_path: str, 
             resource_dir_path: str, 
-            extension_dir_path: str,
             interface_mode: Literal["GUI", "CLI"] = "GUI", 
             listener_port: int = 12354, 
     ):
@@ -456,7 +455,6 @@ class Cellmate:
         self.storage_dir_path = storage_dir_path
         self.listener_port = listener_port
         self.resource_dir_path = resource_dir_path
-        self.extension_dir_path = extension_dir_path
 
         self.selector = Selector(interface_mode)
         self.binary_choice = BinaryChoice(interface_mode)

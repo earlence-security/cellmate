@@ -44,13 +44,11 @@ from cellmate.interface import Cellmate
 TASK = "Respond to the first issue on the current Gitlab repo with 'I am working on it'."
 STORAGE_PATH = "/path/to/your/storage/directory"
 RESOURCE_PATH = "/path/to/your/resources/directory"
-EXTENSION_PATH = "/path/to/your/extension/directory"
 
 # Instantiate an instance of the Cellmate class
 cellmate = Cellmate(
     storage_dir_path=STORAGE_PATH,
     resource_dir_path=RESOURCE_PATH,
-    extention_dir_path=EXTENSION_PATH
 )
 
 # Have a browser instance running with the policy enforcer extension active by this point of time

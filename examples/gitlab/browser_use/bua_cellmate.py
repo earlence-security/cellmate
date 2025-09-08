@@ -24,7 +24,6 @@ def main():
     cellmate = Cellmate(
         storage_dir_path=STORAGE_PATH,
         resource_dir_path=RESOURCE_PATH,
-        extension_dir_path=EXTENSION_PATH,
         interface_mode='CLI'
     )
 
