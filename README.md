@@ -38,7 +38,7 @@ For detailed description of `Cellmate` and its methods, please refer to the subs
 
 ```bash
 # Example usage
-from cellmate.cellmate import Cellmate
+from cellmate.interface import Cellmate
 
 # Define the paths and other parameters
 TASK = "Respond to the first issue on the current Gitlab repo with 'I am working on it'."
