@@ -16,6 +16,8 @@ from anthropic.types import TextBlock
 
 from cellmate.policy.policy import Policy, Action, Sitemap
 
+# Template for the enforcement extension's content script to be formatted in policy_setup and
+# stored within the extension's local directory
 content_script_template = """const originalFetch = fetch;
 const defaultAction = '{defaultAction}';
 const disallowedOperations = {disallowedOperations}
@@ -90,8 +92,18 @@ console.log("Fetch Interceptor for GraphQL is active!");
 """
 
 class Selector:
+    """A multi-interface item selection class.
+
+    Supports the multi selection of items from a list, either in GUI or CLI modes.
+    With additional support for pre selection and highlight certain recommended choices.
+    """
 
     class GUIItemSelector:
+        """GUI based implementation of Selector.
+
+        Implemented via ttkbootstrap
+        """
+
         def __init__(self):
             self.message = ""
             self.items = []
@@ -100,16 +112,16 @@ class Selector:
             self.vars = []
             self.root = None 
             
-        def create_ui(self):
+        def _create_ui(self):
             if self.root is None or not self.root.winfo_exists():
                 self.root = tb.Window(themename="superhero")
                 self.root.title("Item Selector")
-                self.root.geometry('400x375')
+                self.root.geometry('400x500')
             
             for widget in self.root.winfo_children():
                 widget.destroy()
 
-            label = tb.Label(master=self.root, text=self.message, font=("Helvetica",18), wraplength=375)
+            label = tb.Label(master=self.root, text=self.message, font=("Helvetica",15), wraplength=375)
             label.pack(pady=10)
 
             frame = ScrolledFrame(master=self.root, autohide=False)
@@ -117,29 +129,41 @@ class Selector:
             
             self.vars = []
             for item in self.items:
-                var = IntVar(value=int(item in self.initial_selection))
+                var = IntVar(value=int(item in self.initial_selection)) # Set to selected if in list of initially selected items
                 self.vars.append(var)
                 check_button = tb.Checkbutton(master=frame, bootstyle="success, round-toggle",
-                    text=("* " + item + " *" if item in self.recommended_items else item),
+                    text=("* " + item + " *" if item in self.recommended_items else item), # Highlighting the item if its in the list of recommended items
                     variable=var,
                     onvalue=1,
                     offvalue=0,
                 )
                 check_button.pack(pady=10, padx=10, anchor=W)
 
-            button = tb.Button(master=self.root, text="Confirm", bootstyle="success", command=self.submit)
+            button = tb.Button(master=self.root, text="Confirm", bootstyle="success", command=self._submit)
             button.pack(pady=20)
             
-        def submit(self):
+        def _submit(self):
             if self.root is not None:
                 self.root.quit() 
 
         def run(self, message: str, items: list[str], initial_selection: list[str] = [], recommended_items: list[str] = []) -> list[str]:
+            """Displays the GUI for item selection and returns the results.
+
+            Args:
+                message (str): The message to display at the top of the window.
+                items (list[str]): A list of all selectable items.
+                initial_selection (list[str], optional): Items to pre-select. Defaults to [].
+                recommended_items (list[str], optional): Items to mark as recommended with an asterisk. Defaults to [].
+
+            Returns:
+                list[str]: A list of the items selected by the user.
+            """
+
             self.message = message
             self.items = items
             self.initial_selection = initial_selection
             self.recommended_items = recommended_items
-            self.create_ui()
+            self._create_ui()
 
             if self.root is not None:
                 self.root.deiconify()
@@ -156,21 +180,38 @@ class Selector:
             return result
     
     class CLIItemSelector:
+        """CLI based implementation of Selector.
+
+        Implemented via InquirerPy
+        """
+
         def __init__(self):
             pass
 
         def run(self, message: str, items: list[str], initial_selection: list[str] = [], recommended_items: list[str] = []) -> list[str]:
+            """Displays a command line prompt for item selection and returns the results.
+
+            Args:
+                message (str): The message to display at the top of the prompt.
+                items (list[str]): A list of all selectable items.
+                initial_selection (list[str], optional): Items to pre-select. Defaults to [].
+                recommended_items (list[str], optional): Items to mark as recommended with an asterisk. Defaults to [].
+
+            Returns:
+                list[str]: A list of the items selected by the user.
+            """
+
             try:
                 choices = [Choice(value=item, 
-                           name=("* " + item + " *" if item in recommended_items else item), 
-                           enabled=(item in initial_selection)) 
+                           name=("* " + item + " *" if item in recommended_items else item), # highlighting items from recommended_items
+                           enabled=(item in initial_selection)) # Sets initial selection 
                            for item in items]
                 
                 result = inquirer.checkbox(
                     message=message,
                     choices=choices,
                     default=initial_selection,
-                    instruction="(Press <space> to toggle, <enter> to submit)",
+                    instruction="(Press <space> to toggle, <enter> to _submit)",
                 ).execute()
             except KeyboardInterrupt:
                 print("\nSelection aborted.")
@@ -179,89 +220,32 @@ class Selector:
             return result
 
     def __init__(self, interface_mode: Literal["GUI", "CLI"]):
+        """Initializes the Selector with a specified interface.
+
+        Args:
+            interface_mode (Literal["GUI", "CLI"]): The desired interface mode.
+                Must be either "GUI" or "CLI".
+        """
+
         if interface_mode == "GUI":
             self.selector = self.GUIItemSelector()
         elif interface_mode == "CLI":
             self.selector = self.CLIItemSelector()
 
     def run(self, message: str, items: list[str], initial_selection: list[str] = [], recommended_items: list[str] = []) -> list[str]:
+        """Starts the item selection process using the configured interface.
+
+        Args:
+            message (str): The message to display to the user.
+            items (list[str]): A list of all selectable items.
+            initial_selection (list[str], optional): Items to pre-select. Defaults to [].
+            recommended_items (list[str], optional): Items to mark as recommended. Defaults to [].
+
+        Returns:
+            list[str]: A list of the items selected by the user.
+        """
+
         return self.selector.run(message, items, initial_selection, recommended_items)
-
-class BinaryChoice:
-
-    class CLIBinaryChoice:
-        def __init__(self):
-            pass
-
-        def run(self, message: str, choices: list[str]):
-            try:
-                result = inquirer.select(
-                    message=message,
-                    choices=choices,
-                    instruction="(Use arrow keys to navigate, <enter> to confirm)"
-                ).execute()
-
-            except KeyboardInterrupt:
-                print("\nSelection aborted.")
-                return []
-
-            return result
-
-    class GUIBinaryChoice:
-        def __init__(self):
-            self.message = ""
-            self.choices = []
-            self.root = None
-            self.value = None
-
-        def create_UI(self):
-            if self.root is None or not self.root.winfo_exists():
-                self.root = tb.Toplevel()
-                self.root.title("Setup")
-                self.root.geometry('350x200')
-            
-            for widget in self.root.winfo_children():
-                widget.destroy()
-
-            label = tb.Label(master=self.root, text=self.message, font=("Helvetica",18))
-            label.pack(pady=10)
-
-            button_1 = tb.Button(master=self.root, text=self.choices[0], bootstyle="success", command=self.button_1_clicked)
-            button_1.pack(pady=10)
-
-            button_2 = tb.Button(master=self.root, text=self.choices[1], bootstyle="success", command=self.button_2_clicked)
-            button_2.pack(pady=10)
-
-        def button_1_clicked(self):
-            self.value = self.choices[0]
-            if self.root is not None:
-                self.root.quit() 
-        
-        def button_2_clicked(self):
-            self.value = self.choices[1]
-            if self.root is not None:
-                self.root.quit() 
-        
-        def run(self, message: str, choices: list[str]):
-            self.message = message
-            self.choices = choices
-            self.create_UI()
-
-            if self.root is not None:
-                self.root.deiconify()
-                self.root.mainloop()
-
-            return self.value
-    
-    def __init__(self, interface_mode: Literal["GUI", "CLI"]):
-        if interface_mode == "GUI":
-            self.binary_choice = self.GUIBinaryChoice()
-        elif interface_mode == "CLI":
-            self.binary_choice = self.CLIBinaryChoice()
-    
-    def run(self, message: str, choices: list[str]):
-        return self.binary_choice.run(message, choices)
-    
 
 def deduplicate_rules(rules):
     """
@@ -295,6 +279,11 @@ def deduplicate_rules(rules):
 
 
 class Cellmate:
+    """The client component of Cellmate, a framework for sandboxing Browser Use Agents.
+
+    This class is responsible for communicating with the enforcement browser extension 
+    and providing an interface for the users to configure personalized enforcement policies.
+    """
 
     class TransmissionServer:
         """
@@ -303,6 +292,11 @@ class Cellmate:
         This class runs a Flask server in a background thread and uses a shared state
         to communicate an "operation" and "rules" to a client. It blocks until a "/done"
         signal is received, allowing for a synchronous workflow.
+
+        Despite this Python package's role as a client side application tasked with exerting
+        control over the Chrome extension by design, in the implementation a server is set up
+        here and the extension will continuously ping this server for the lastest instruction
+        from the user.
         """
         def __init__(self, listener_port: int):
             """
@@ -323,9 +317,11 @@ class Cellmate:
             log = logging.getLogger('werkzeug')
             log.setLevel(logging.ERROR)
 
+            # set up HTTP routers
             self.app.add_url_rule("/ping", "ping", self._ping, methods=["get"])
             self.app.add_url_rule("/done", "done", self._done, methods=["post"])
             
+            # run the server in a seperate thread
             server_thread = threading.Thread(target=self._run_server)
             server_thread.daemon = True
             server_thread.start()
@@ -437,25 +433,37 @@ class Cellmate:
 
     def __init__(
             self, 
-            task: str, 
             storage_dir_path: str, 
             resource_dir_path: str, 
             extention_dir_path: str,
             interface_mode: Literal["GUI", "CLI"] = "GUI", 
             listener_port: int = 12354, 
     ):
+        """Initializes the Cellmate client component.
+
+        This method sets up the file paths, initializes the GUI/CLI selector,
+        and starts the background communication server.
+
+        Args:
+            storage_dir_path (str): The path to the directory for storing user-specific policies.
+            resource_dir_path (str): The path to the directory containing domain-specific resources like sitemap, default policy and rules.
+            extention_dir_path (str): The path to the directory of the browser extension.
+            interface_mode (Literal["GUI", "CLI"], optional): The user interface mode to use. Defaults to "GUI".
+            listener_port (int, optional): The port for the communication server. Defaults to 12354.
+        """
         
-        self.task = task
         self.storage_dir_path = storage_dir_path
         self.listener_port = listener_port
         self.resource_dir_path = resource_dir_path
         self.extension_dir_path = extention_dir_path
 
+        # Set up the selector with the selected interface mode
         self.selector = Selector(interface_mode)
-        self.binary_choice = BinaryChoice(interface_mode)
 
+        # Initialize the communication server
         self.server = self.TransmissionServer(listener_port=listener_port)
 
+        # Attempt to load a list of domains with preconfigured policies
         self.domain_list_file_path = self.storage_dir_path + "/domains.json"
         if os.path.exists(self.domain_list_file_path) and os.path.isfile(self.domain_list_file_path):
             with open(self.domain_list_file_path, "r") as f:
@@ -463,16 +471,41 @@ class Cellmate:
         else:
             self.domain_list = []
         
-        self.policy_setup()
+    def compile_DNR_rule(
+            self, 
+            url: str, 
+            method: str, 
+            id: int, 
+            default_action: Literal["deny", "allow_public"], 
+            priority: int = 2, 
+            resource_types: list[str] = [], 
+            regex: str = ''
+    ) -> dict:
+        """Compiles a single declarativeNetRequest rule for the browser extension.
 
-    def compile_DNR_rule(self, url: str, method: str, id: int, default_action: Literal["deny", "allow_public"], priority: int = 2, resource_types: list[str] = [], regex: str = '') -> dict:
+        This method creates a browser-native `declarativeNetRequest` JSON rule from the provided parameters, 
+        which is used for blocking or modifying network requests.
+
+        Args:
+            url (str): The URL pattern to match.
+            method (str): The HTTP method to match (e.g., "get", "post").
+            id (int): A unique identifier for the rule.
+            default_action (Literal["deny", "allow_public"]): The primary action for the rule.
+            priority (int, optional): The priority of the rule. Higher numbers have higher priority. Defaults to 2.
+            resource_types (list[str], optional): The types of resources to match. Defaults to [].
+            regex (str, optional): A regex filter. If provided, `url` is ignored. Defaults to ''.
+
+        Returns:
+            dict: The compiled declarativeNetRequest rule as a dictionary.
+        """
+        
         if default_action == "deny":
             action = { "type": "block" }
         elif default_action == "allow_public":
             action = {
                         "type": "modifyHeaders",
                         "requestHeaders": [{ "header": "cookie", "operation": "remove" }]
-                        }  
+                     }  
 
         rule = {
             "id": id,
@@ -497,8 +530,21 @@ class Cellmate:
         return rule
     
     def domain_predictor(self, task: str):
+        """Predicts and extracts relevant domains from a user's task description.
+
+        This method uses an LLM (currently only supports Anthropic) to analyze a user specified task
+        and identify relevant domains.
+
+        Args:
+            task (str): A natural language description of the user's task.
+
+        Returns:
+            list[str]: A list of predicted domain names (e.g., ["gitlab.com"]).
+        """
+
         client = Anthropic()
 
+        # Prompt template
         prompt = """
         Extract the relevant domains mentioned in this task description and output them in JSON list format. Output only the JSON and nothing else.
 
@@ -509,6 +555,7 @@ class Cellmate:
         Example output = ["amazon.com"]
         """
 
+        # instantiate a client to query the external LLM
         message = client.messages.create(
             max_tokens=1024,
             messages=[{
@@ -518,6 +565,7 @@ class Cellmate:
             model="claude-sonnet-4-20250514"
         ).content[0]
 
+        # Extract predicted domains from LLM's response
         if type(message) == TextBlock:
             output = message.text
         else:
@@ -532,33 +580,52 @@ class Cellmate:
             
         return domains
     
-    def policy_predictor(self, task: str, rules: dict[str, str]):
+    def policy_predictor(self, task: str, rules: dict[str, str], domain: str):
+        """Predicts the necessary permissions for a specific domain based on a task.
+
+        This method uses an LLM (currently only supports Anthropic) to select a set of 
+        most relevant, least-privileged permissions from a dictionary of available rules 
+        for a given domain and task.
+
+        Args:
+            task (str): The user's task description.
+            rules (dict[str, str]): A dictionary mapping rule names to their descriptions.
+            domain (str): The specific domain to analyze.
+
+        Returns:
+            list[str]: A list of the names of the predicted rules.
+        """
+
         client = Anthropic()
 
+        # Prompt template
         prompt = """
-        Here is a dictionary mapping permissions to their corresponding descriptions.
+        Here is a dictionary mapping permissions to their corresponding descriptions within the domain {domain}.
 
         {dictionary}
 
-        Given this dictionary of permissions, I want you to select the appropriate permissions needed to complete the following task:
+        Given this dictionary of permissions, I want you to select the appropriate permissions within {domain} needed to complete the following task:
 
         {task}
 
-        Aim to select the least privileged set of permissions.
+        Aim to select the least privileged set of permissions. 
+        If the provided task involves domains other than {domain}, focus solely on selecting the permissions within {domain} that are relevant to the part of the task related to {domain}.
 
         Output a JSON list containing the permissions you selected. Output only the JSON list and nothing else.
 
         """
 
+        # instantiate a client to query the external LLM
         message = client.messages.create(
             max_tokens=1024,
             messages=[{
                 "role": "user",
-                "content": prompt.format(task=task, dictionary=str(rules))
+                "content": prompt.format(task=task, dictionary=str(rules), domain=domain)
             }],
             model="claude-sonnet-4-20250514"
         ).content[0]
 
+        # Extract predicted domains from LLM's response
         if type(message) == TextBlock:
             output = message.text
         else:
@@ -573,18 +640,29 @@ class Cellmate:
 
         return predicted_rules
 
-    def policy_setup(self):
+    def policy_setup(self, task: str) -> bool:
+        """Guides the user through setting up a sandboxing policy, then relay the policy to the enforcement extension.
 
-        predicted_domains = self.domain_predictor(self.task)
+        Args:
+            task (str): A natural language description of the task to be performed by the BUA.
+
+        Returns:
+            bool: `True` if the policy was successfully set up and transmitted, `False` otherwise.
+        """
+
+        # Prompts an LLM for domains relevant to the task 
+        predicted_domains = self.domain_predictor(task)
 
         all_domains = predicted_domains + list(set(self.domain_list) - set(predicted_domains))
 
+        # Ask user to validate and modify if need be the suggested domains
         selected_domains = self.selector.run(
             message="Select the relevant domains for your task (selected domains are AI suggested)",
             items=all_domains,
             initial_selection=predicted_domains
         )
 
+        # By default, if no domain is selected by the user, allow only public access to all domains.
         if len(selected_domains) == 0:
             print("No domain selected.\nDefaulting to allow public only mode.")
             
@@ -602,6 +680,8 @@ class Cellmate:
 
             return True
         else:
+            # Determine which domains have no configured policies
+            # then create a storage directory for that domain and populate it with the domain's default policy
             domains_to_initialize = []
             for domain in selected_domains:
                 policy_path = f"{self.storage_dir_path}/{domain}/policy.json"
@@ -616,6 +696,7 @@ class Cellmate:
                     with open(policy_path, "w") as f:
                         json.dump(policy, f)
 
+            # Ask the user to select any preconfigured policies that they wish to edit 
             domains_to_setup = self.selector.run(
                 message="Select existing domain-specific policies that you wish to edit.",
                 items=list(set(selected_domains) - set(domains_to_initialize))
@@ -627,17 +708,20 @@ class Cellmate:
         ruleset = []
         allowed_domains = []
 
+        # Transforming policy to formats expected by the enforcement extension for each of the selected domains
         for domain in selected_domains:
             policy_path = f"{self.storage_dir_path}/{domain}/policy.json"
 
             with open(policy_path) as f:
                 policy = json.load(f)
 
+            # Get the default action taken for endpoints not allowed by the policy
             default = policy["default"]
             
             allowed_domains.extend(policy["allowed_domains"])
             allowed_domains.extend(policy["domains"])
-
+            
+            # Whitelist any explicitly allowed requests 
             if "allowed_requests" in policy:
                 for allowed_request in policy["allowed_requests"]:
                     rule = {
@@ -658,22 +742,25 @@ class Cellmate:
                 print("Invalid default value for policy!")
                 return False
 
-            # policy setup            
+            # Configuring new or to be modified policy
             if domain in domains_to_setup:
                 rule_path = f"{self.resource_dir_path}/{domain}/rules"
-
+                
+                # Get the list of rule names for rules of the current domain 
                 rule_dict = {}
                 for file_name in os.listdir(rule_path):
                     with open(rule_path + "/" + file_name) as f:
                         rule_json = json.load(f)
                     rule_dict[file_name.split(".")[0]] = rule_json
-
-                predicted_rule_names = self.policy_predictor(self.task, {rule_name:rule["description"] for rule_name, rule in rule_dict.items()})
+                
+                # Predict relevant rules given permissions needed for the current task
+                predicted_rule_names = self.policy_predictor(task, {rule_name:rule["description"] for rule_name, rule in rule_dict.items()}, domain)
 
                 previously_selected_rules_names = [rule["name"] for rule in policy["rules"]]
 
                 rule_names = [file_name.split(".")[0] for file_name in os.listdir(rule_path)]
 
+                # Prompt the user to select rules for this domain's policy
                 selected_rule_names = self.selector.run(
                     message=f"Select the relevant permissions to enable on your policy for {domain}.\nAI recommended permissions are highlighted.",
                     items=rule_names,
@@ -681,6 +768,7 @@ class Cellmate:
                     recommended_items=predicted_rule_names
                 )
 
+                # Save the newly configured rule locally
                 rules = []
                 for rule_name in selected_rule_names:
                     rule = rule_dict[rule_name]
@@ -751,34 +839,17 @@ class Cellmate:
         return True
     
     def start_enforcement(self):
+        """Signals the browser extension to start enforcing its current set of policies.
+
+        This method communicates a "start" command to the extension, which then
+        begins to enforce the sandboxing policies that were previously relay to the extension.
+        """
         self.server.start()
 
     def end_enforcement(self):
+        """Signals the browser extension to stop enforcing its current set of policies.
+
+        This method communicates a "finish" command to the extension, which
+        stops the extension from enforcing the current sandboxing policies.
+        """
         self.server.finish()
-
-
-# Example usage
-
-# First set your Anthropic API key as a environment variable/
-
-# if __name__ == "__main__":
-#     # Initialize cellmate, policy_setup() is automatically called here to have the user config the policy then relay it to the extension
-#     # At this point the extension has the policy available but have not yet started enforcing it.
-#     cellmate = Cellmate(
-#         task="read newest issue from gitlab", 
-#         storage_dir_path="/home/henry/Research/CUA/bua-sandboxing/Cellmate/local", 
-#         resource_dir_path="/home/henry/Research/CUA/bua-sandboxing/policy-demo/gitlab-demo",
-#         extention_dir_path="/home/henry/Research/CUA/bua-sandboxing/Cellmate/DNR_enforcer",
-#         interface_mode="CLI"
-#     )
-
-#     # Signaling the extension to start enforcing the policy
-#     cellmate.start_enforcement()
-
-#     # Agent runs here 
-
-#     # Signaling the extension to stop enforcing the policy
-#     cellmate.end_enforcement()
-
-#     # User could use the browser unobstructed at this point of time
-
