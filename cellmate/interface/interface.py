@@ -304,7 +304,7 @@ class Cellmate:
         to communicate an "operation" and "rules" to a client. It blocks until a "/done"
         signal is received, allowing for a synchronous workflow.
         """
-        def __init__(self, listener_port: int, parent):
+        def __init__(self, listener_port: int):
             """
             Initializes the server and starts it in a background thread.
 
@@ -317,9 +317,6 @@ class Cellmate:
             self.current_rules = []
             self.last_status_success = False
             self.last_failure_message = ""
-
-            # Access parent instance attributes
-            self.parent = parent
 
             self.app = Flask(__name__)
 
@@ -345,12 +342,6 @@ class Cellmate:
                 return jsonify({
                     "operation": self.current_operation,
                     "rules": self.current_rules
-                })
-            elif self.current_operation == "start":
-                # Send the absolute path of content script to be injected when starting enforcement
-                return jsonify({
-                    "operation": self.current_operation,
-                    "content_script_path": os.path.abspath(self.parent.storage_dir_path + "/content.js")
                 })
             
             # Otherwise, just return the operation.
@@ -446,20 +437,24 @@ class Cellmate:
 
     def __init__(
             self, 
+            task: str, 
             storage_dir_path: str, 
             resource_dir_path: str, 
+            extention_dir_path: str,
             interface_mode: Literal["GUI", "CLI"] = "GUI", 
             listener_port: int = 12354, 
     ):
         
+        self.task = task
         self.storage_dir_path = storage_dir_path
         self.listener_port = listener_port
         self.resource_dir_path = resource_dir_path
+        self.extension_dir_path = extention_dir_path
 
         self.selector = Selector(interface_mode)
         self.binary_choice = BinaryChoice(interface_mode)
 
-        self.server = self.TransmissionServer(listener_port=listener_port, parent=self)
+        self.server = self.TransmissionServer(listener_port=listener_port)
 
         self.domain_list_file_path = self.storage_dir_path + "/domains.json"
         if os.path.exists(self.domain_list_file_path) and os.path.isfile(self.domain_list_file_path):
@@ -468,7 +463,7 @@ class Cellmate:
         else:
             self.domain_list = []
         
-        # self.policy_setup()
+        self.policy_setup()
 
     def compile_DNR_rule(self, url: str, method: str, id: int, default_action: Literal["deny", "allow_public"], priority: int = 2, resource_types: list[str] = [], regex: str = '') -> dict:
         if default_action == "deny":
@@ -578,9 +573,9 @@ class Cellmate:
 
         return predicted_rules
 
-    def policy_setup(self, task: str) -> bool:
+    def policy_setup(self):
 
-        predicted_domains = self.domain_predictor(task)
+        predicted_domains = self.domain_predictor(self.task)
 
         all_domains = predicted_domains + list(set(self.domain_list) - set(predicted_domains))
 
@@ -673,7 +668,7 @@ class Cellmate:
                         rule_json = json.load(f)
                     rule_dict[file_name.split(".")[0]] = rule_json
 
-                predicted_rule_names = self.policy_predictor(task, {rule_name:rule["description"] for rule_name, rule in rule_dict.items()})
+                predicted_rule_names = self.policy_predictor(self.task, {rule_name:rule["description"] for rule_name, rule in rule_dict.items()})
 
                 previously_selected_rules_names = [rule["name"] for rule in policy["rules"]]
 
@@ -746,7 +741,7 @@ class Cellmate:
         disallowedGraphqlOperations = list(set(disallowedGraphqlOperations))
 
         # Setup content script w.r.t the ruleset selected
-        with open(self.storage_dir_path + "/content.js", "w") as f:
+        with open(self.extension_dir_path + "/content.js", "w") as f:
             f.write(content_script_template.format(defaultAction=default, disallowedOperations=str(disallowedGraphqlOperations)))
         
         # pass compiled rules to extension

@@ -69,7 +69,7 @@ async function setUpRules(rules) {
   console.log("Successfully sent 'done' signal.");
 }
 
-async function startEnforcement(contentScriptPath) {
+async function startEnforcement() {
     let status = 'success';
     let message = '';
 
@@ -98,7 +98,7 @@ async function startEnforcement(contentScriptPath) {
       try {
         await chrome.scripting.registerContentScripts([{
           id: 'graphql_interceptor',
-          js: [contentScriptPath],
+          js: ['content.js'],
           matches: ['<all_urls>'],
           runAt: 'document_start',
           world: 'MAIN'
@@ -170,8 +170,7 @@ async function startProcess() {
                     }
 
                     else if (data.operation === "start") {
-                        const contentScriptPath = data.content_script_path;
-                        await startEnforcement(contentScriptPath);
+                        await startEnforcement();
                     }
 
                     else if (data.operation === "finish") {
