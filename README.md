@@ -76,7 +76,7 @@ The `Cellmate` class from Cellmate's client packages allows users to setup/modif
 
 ### Methods of `Cellmate`
 
-#### `__init__(storage_dir_path, resource_dir_path, extention_dir_path, interface_mode="GUI", listener_port=12354)`
+#### `__init__(storage_dir_path, resource_dir_path, extention_dir_path, interface_mode, listener_port)`
 
 The `Cellmate` class constructor.
 
@@ -108,7 +108,75 @@ Signals the extension to stop enforcing the current policies. A browser instance
 
 ## Policy Specifications
 
-TODO
+Policy defines how the sandboxing is going to be performed on a domain. A simple policy for gitlab.com could look something like this:
+
+```
+{
+    "name": "gitlab_policy",
+    "default": "allow_public",
+    "domain": [
+        "gitlab.com"
+    ],
+    "rules": [
+        {
+            "effect": "allow",
+            "match": {
+                "tags": [
+                    "project",
+                    "issue"
+                ]
+            },
+            "description": "Allow read/write access to project issues."
+        }
+    ]
+}
+
+```
+
+The `"name"` field defines the name of this policy. 
+
+The `"domain"` field specifies the domain that this policy will be applied on. 
+
+The `"default"` field decides what to do when the agent attempts to access an unauthorized part of this domain as specified in this policy. If this field is set to `"allow_public"`, it means that the agent will be able to access this unauthorized part, but in a way that all credentials as stripped away, as if the user has not logged in. And if this field is set to "deny", access to this part of the domain will be completely blocked.
+
+Finally, the `"rules"` field contains a list of rules that determines how the sandboxing is going to be done on this domain, or more specifically, deciding which parts of the domains should be accessible to the agent. To make such a decision, rules in a policy needs to be matched agains the agent sitemap of the domain. 
+
+The agent sitemap of a domain attributes semantic meaning to that domain's HTTP endpoints using `"tags"`. Below is few entries in an example sitemap we created for gitlab.
+
+```
+[    
+    {
+        "semantic_action": "Create new issue note",
+        "url": "https://gitlab.com/api/graphql",
+        "method": "POST",
+        "body": {
+            "operationName": "createWorkItemNote",
+        },
+        "tags": [
+            "project",
+            "issue",
+            "note",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Create a personal access token for a user",
+        "url": "https://gitlab.com/-/user_settings/personal_access_tokens*",
+        "method": "POST",
+        "body": {},
+        "tags": [
+            "user",
+            "personal_access_token",
+            "create"
+        ]
+   },
+  ...
+]
+```
+
+If the tags of an endpoint could satisfy all the tags of a rule, then this endpoint is matched by this rule, and would take the effect of the matched rule. For example, both the "project" and "issue" tags of the example policy's only rule can be found within the `"tags"` field of the first sitemap entry. This means that the entry is matched and its HTTP endpoint will be treated according to the effect of the matched rule, which will be "allowed".
+
+For more detailed explaination on Cellmate's policy specification, please refer to [here](cellmate/policy/README.md).
 
 ## Citation
 
