@@ -50,7 +50,7 @@ EXTENSION_PATH = "/path/to/your/extension/directory"
 cellmate = Cellmate(
     storage_dir_path=STORAGE_PATH,
     resource_dir_path=RESOURCE_PATH,
-    extention_dir_path=EXTENSION_PATH
+    extension_dir_path=EXTENSION_PATH
 )
 
 # Have a browser instance running with the policy enforcer extension active by this point of time
@@ -76,7 +76,7 @@ The `Cellmate` class from Cellmate's client packages allows users to setup/modif
 
 ### Methods of `Cellmate`
 
-#### `__init__(storage_dir_path, resource_dir_path, extention_dir_path, interface_mode, listener_port)`
+#### `__init__(storage_dir_path, resource_dir_path, extension_dir_path, interface_mode, listener_port)`
 
 The `Cellmate` class constructor.
 
@@ -133,18 +133,18 @@ Policy defines how the sandboxing is going to be performed on a domain. A simple
 
 ```
 
-The `"name"` field defines the name of this policy. 
+The `"name"` field defines the name of this policy.
 
-The `"domain"` field specifies the domain that this policy will be applied on. 
+The `"domain"` field specifies the domain that this policy will be applied on.
 
 The `"default"` field decides what to do when the agent attempts to access an unauthorized part of this domain as specified in this policy. If this field is set to `"allow_public"`, it means that the agent will be able to access this unauthorized part, but in a way that all credentials as stripped away, as if the user has not logged in. And if this field is set to "deny", access to this part of the domain will be completely blocked.
 
-Finally, the `"rules"` field contains a list of rules that determines how the sandboxing is going to be done on this domain, or more specifically, deciding which parts of the domains should be accessible to the agent. To make such a decision, rules in a policy needs to be matched agains the agent sitemap of the domain. 
+Finally, the `"rules"` field contains a list of rules that determines how the sandboxing is going to be done on this domain, or more specifically, deciding which parts of the domains should be accessible to the agent. To make such a decision, rules in a policy needs to be matched agains the agent sitemap of the domain.
 
 The agent sitemap of a domain attributes semantic meaning to that domain's HTTP endpoints using `"tags"`. Below is few entries in an example sitemap we created for gitlab.
 
 ```
-[    
+[
     {
         "semantic_action": "Create new issue note",
         "url": "https://gitlab.com/api/graphql",

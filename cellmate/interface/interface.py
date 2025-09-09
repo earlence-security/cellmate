@@ -435,7 +435,7 @@ class Cellmate:
             self, 
             storage_dir_path: str, 
             resource_dir_path: str, 
-            extention_dir_path: str,
+            extension_dir_path: str,
             interface_mode: Literal["GUI", "CLI"] = "GUI", 
             listener_port: int = 12354, 
     ):
@@ -447,7 +447,7 @@ class Cellmate:
         Args:
             storage_dir_path (str): The path to the directory for storing user-specific policies.
             resource_dir_path (str): The path to the directory containing domain-specific resources like sitemap, default policy and rules.
-            extention_dir_path (str): The path to the directory of the browser extension.
+            extension_dir_path (str): The path to the directory of the browser extension.
             interface_mode (Literal["GUI", "CLI"], optional): The user interface mode to use. Defaults to "GUI".
             listener_port (int, optional): The port for the communication server. Defaults to 12354.
         """
@@ -455,7 +455,7 @@ class Cellmate:
         self.storage_dir_path = storage_dir_path
         self.listener_port = listener_port
         self.resource_dir_path = resource_dir_path
-        self.extension_dir_path = extention_dir_path
+        self.extension_dir_path = extension_dir_path
 
         # Set up the selector with the selected interface mode
         self.selector = Selector(interface_mode)
