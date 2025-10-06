@@ -483,5 +483,78 @@ class TestBrowserActionPolicy(unittest.TestCase):
 
         self.assertEqual(policy_match_multiple_rules_default_allow.evaluate(action), "deny")
 
+
+class TestPolicyWithState(unittest.TestCase):
+    def setUp(self):
+        # Mock sitemap
+        self.sitemap = Sitemap([
+            {
+                "semantic_action": "Buy an item now",
+                "url": "https://www.amazon.com/checkout/entry/buynow",
+                "method": "POST",
+                "body": {},
+                "tags": [
+                    "checkout",
+                    "create"
+                ],
+                "children": []
+            },
+            {
+                "semantic_action": "View shopping cart",
+                "url": "https://www.amazon.com/gp/cart/view.html*",
+                "method": "GET",
+                "body": {},
+                "tags": [
+                    "read",
+                    "shopping_cart"
+                ],
+                "children": []
+            },
+            {
+                "semantic_action": "Checkout shopping cart",
+                "url": "https://www.amazon.com/checkout/entry/cart*",
+                "method": "GET",
+                "body": {},
+                "tags": [
+                    "checkout",
+                    "create"
+                ],
+                "children": []
+            }
+        ])
+
+        self.policy_with_state = Policy.from_dict({
+            "name": "amazon_policy_with_state",
+            "description": "Policy that uses state to allow checkout amount less than 100.",
+            "default": "deny",
+            "domains": [
+                "www.amazon.com"
+            ],
+            "rules": [
+                {
+                    "effect": "allow",
+                    "match": {
+                        "endpoints": [
+                            {
+                                "method": "POST",
+                                "url": "https://www.amazon.com/checkout/entry/cart*"
+                            }
+                        ],
+                        "conditions": [
+                            {
+                                "field": "total_amount",
+                                "operator": "<=",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    "description": "Allow purchase if total amount is less than or equal to $100"
+                }            
+            ]
+        })
+
+        
+
+
 if __name__ == '__main__':
     unittest.main()

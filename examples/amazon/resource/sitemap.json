@@ -1,0 +1,46 @@
+[
+    {
+        "semantic_action": "Buy an item now",
+        "url": "https://www.amazon.com/checkout/entry/buynow",
+        "method": "POST",
+        "body": {},
+        "tags": [
+            "checkout",
+            "create"
+        ],
+        "children": []
+    },
+    {
+        "semantic_action": "View shopping cart",
+        "url": "https://www.amazon.com/gp/cart/view.html*",
+        "method": "GET",
+        "body": {},
+        "tags": [
+            "read",
+            "shopping_cart"
+        ],
+        "children": []
+    },
+    {
+        "semantic_action": "Checkout shopping cart",
+        "url": "https://www.amazon.com/checkout/entry/cart*",
+        "method": "GET",
+        "body": {},
+        "tags": [
+            "checkout",
+            "create"
+        ],
+        "children": [],
+        "fields": {
+            "total_amount": {
+                "type": "number",
+                "sources": [
+                    {
+                        "type": "html",
+                        "path": "//*[@id=\"sc-subtotal-amount-buybox\"]/span"
+                    }
+                ]
+            }
+        }
+    }
+]

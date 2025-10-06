@@ -24,12 +24,11 @@ class SitemapEntry:
             return False
         if not self.regex.match(action_url):
             return False
-        # TODO: Uncomment this once we have body matching in place
-        # if self.body:
-        #     if not action_body:
-        #         return False
-        #     if not self._match_dict(self.body, action_body):
-        #         return False
+        if self.body:
+            if not action_body:
+                return False
+            if not self._match_dict(self.body, action_body):
+                return False
         return True
 
     def _match_dict(self, pattern: dict, target: dict) -> bool:
