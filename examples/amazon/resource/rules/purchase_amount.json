@@ -1,0 +1,23 @@
+{
+    "effect": "allow",
+    "match": {
+        "endpoints": [
+            {
+                "method": "POST",
+                "url": "https://www.amazon.com/checkout/entry/cart*"
+            }
+        ],
+        "conditions": [
+            {
+                "function": "purchase_amount::allow_purchase_if_amount_leq",
+                "args": [
+                    "total_amount"
+                ],
+                "parameters": {
+                    "max_amount": 100
+                }
+            }
+        ]
+    },
+    "description": "Allow purchase if total amount is less than or equal to $100"
+}

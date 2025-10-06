@@ -1,13 +1,16 @@
 """
 Policy module for handling browser actions and requests.
 
+09/16/2025: Updates:
+    -  TODO
+
+08/28/2025: Note:
+    - We updated the Policy syntax for DeclarativeNetRequest rule generation. Those changes have NOT been reflected in this file.
+
 08/19/2025: Updates:
     - Added support for handling request body. Enabled matching request body for GraphQL requests.
     - Improved domain and request matching with wildcard (`'*'`) support that matches all.
     - Renamed `"allowed_domains"` to `"domains"` in `Policy` class.
-
-08/28/2025: Note:
-    - We updated the Policy syntax for Declaration of Network Request generation. Those changes have NOT been reflected in this file.
 """
 
 import re
@@ -23,6 +26,7 @@ from urllib.parse import urlparse
 from email.utils import collapse_rfc2231_value
 from playwright.async_api import Request
 from .sitemap import Sitemap
+from .state import StateStore, StateInfoBlock
 
 logger = logging.getLogger(__name__)
 
@@ -136,10 +140,61 @@ class Action:
 
 
 @dataclass
+class Condition:
+    """
+    Check values stored in StateStore (the “current state”). Currently only support simple comparisons.
+    Will be extended to support more complex conditions or program execution in the future.
+    NOTE: Currently, conditions are ANDed together in MatchBlock.
+    """
+    field: str
+    operator: Literal["<=", "<", ">=", ">", "==", "!="]
+    value: Any
+
+    @staticmethod
+    def from_dict(data: dict) -> "Condition":
+        required = ["field", "operator", "value"]
+        missing = [k for k in required if k not in data]
+        if missing:
+            raise ValueError(f"Condition is missing required fields: {', '.join(missing)}")
+        return Condition(
+            field=data["field"],
+            operator=data["operator"],
+            value=data["value"]
+        )
+
+    def evaluate(self, state: StateStore | None = None) -> bool:
+        """Evaluate this condition against the current state dict."""
+        if state is None:
+            return False
+        field_val = state.get(self.field)
+        if field_val is None:
+            return False
+
+        try:
+            if self.operator == "<=":
+                return field_val <= self.value
+            elif self.operator == "<":
+                return field_val < self.value
+            elif self.operator == ">=":
+                return field_val >= self.value
+            elif self.operator == ">":
+                return field_val > self.value
+            elif self.operator == "==":
+                return field_val == self.value
+            elif self.operator == "!=":
+                return field_val != self.value
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Condition evaluation error: {e}")
+            return False
+        return False
+
+
+@dataclass
 class MatchBlock:
     tags: list[str] | None = None
     endpoints: list[Endpoint] | None = None
-    fields: dict[str, str | dict[str, str | bytes] | bytes] | None = None
+    conditions: list[Condition] | None = None
     match_all: bool = False  # If True, matches all actions regardless of tags or endpoints
 
 
@@ -152,7 +207,7 @@ class MatchBlock:
                     Endpoint(url=e.get("url"), method=e.get("method"))
                     for e in data.get("endpoints", [])
                 ],
-                fields=data.get("fields"),
+                conditions=[Condition.from_dict(c) for c in data.get("conditions", [])],
                 match_all=False
             )
         else:
@@ -161,9 +216,9 @@ class MatchBlock:
             else:
                 raise ValueError("MatchBlock not supported. Must be literal '*' or a dictionary.")
 
-    def matches(self, action: Action) -> bool:
+    def matches(self, action: Action, state: StateStore | None = None) -> bool:
         # '*': Match all actions if match_all is True
-        print(f"⏳ Matching action: {action.endpoint.method} {action.endpoint.url} with tags: {action.tags}")
+        logger.debug(f"⏳ Matching action: {action.endpoint.method} {action.endpoint.url} with tags: {action.tags}")
         if self.match_all:
             return True
         # Tags: AND logic, negation with ~
@@ -188,14 +243,12 @@ class MatchBlock:
             ):
                 return False
 
-        # Fields: match fields in request body or customized fields
-        if self.fields:
-            if not action.body:
-                return False
-            for key, expected in self.fields.items():
-                if action.body.get(key) != expected:
+        # Conditions: AND semantics by default
+        if self.conditions and state:
+            for cond in self.conditions:
+                if not cond.evaluate(state):
                     return False
-        print(f"🎯 Matched tags: {self.tags} with action tags: {action.tags}")
+        logger.debug(f"🎯 Matched tags: {self.tags} with action tags: {action.tags}")
         return True
 
 
@@ -222,6 +275,7 @@ class Rule:
     match: MatchBlock | None = None
     exceptions: list[ExceptionBlock] | None = None
     description: str | None = None
+    state_info: list[StateInfoBlock] | None = None
 
     @staticmethod
     def from_dict(data: dict) -> "Rule":
@@ -235,17 +289,14 @@ class Rule:
             description=data.get("description")
         )
 
-    def applies_to(self, action: Action) -> bool:
+    def applies_to(self, action: Action, state: StateStore | None = None) -> bool:
         # Match check
-        if self.match and not self.match.matches(action):
+        if self.match and not self.match.matches(action, state):
             return False
         # Exception check (OR logic)
-        if self.exceptions:
-            print(f"⏳ Checking exceptions for action: {action.endpoint.url}")
-            if any(e.matches(action) for e in self.exceptions):
+        if self.exceptions and any(e.matches(action, state) for e in self.exceptions):
                 return False
         return True
-
 
 
 @dataclass
@@ -315,19 +366,29 @@ class Policy:
             domains=data["domains"]
         )
 
-    def evaluate(self, action: Action) -> str:
+    def evaluate(self, action: Action, state_store: StateStore | None = None) -> str:
         """
         Evaluate the policy against a given action.
         1. If the policy does not apply to the action, i.e., action domain outside the policy's domains, return "deny".
         2. If find a matching rule, return its effect.
         3. If no rules match, return the default effect.
         """
+        if state_store is None:
+            state_store = StateStore()  # initialize empty state
+
+        # Load state_info from all rules into state_store
+        for rule in self.rules:
+            if rule.state_info:
+                for info_block in rule.state_info:
+                    state_store.register_state_info(info_block)
+
+        # Domain check
         if self.domains != '*' and not any(self._domain_matches(domain, action) for domain in self.domains):
             return "deny"
         # `__post_init__` already sorts rules so that the most restrictive ones come first.
         for i, rule in enumerate(self.rules):
-            if rule.applies_to(action):
-                print(f"🔍 Evaluating against rule #{i}.")
+            if rule.applies_to(action, state):
+                logger.debug(f"🔍 Evaluating against rule #{i}.")
                 return rule.effect
         return self.default
     

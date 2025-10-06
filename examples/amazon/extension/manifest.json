@@ -1,0 +1,15 @@
+{
+    "manifest_version": 2,
+    "name": "PolicyRunner",
+    "version": "1.0",
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "permissions": [
+        "storage",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>"
+    ]
+}
