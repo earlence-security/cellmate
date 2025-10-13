@@ -1,0 +1,9 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "read"
+        ]
+    },
+    "description": "Grants read access, including all groups and projects, the container registry, and the package registry."
+}

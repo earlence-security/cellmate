@@ -1,0 +1,12 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "read",
+            "user",
+            "~key",
+            "~personal_access_token"
+        ]
+    },
+    "description": "Allow read access to user profile, except for sensitive information including keys and personal access tokens."
+}

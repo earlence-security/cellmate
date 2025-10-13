@@ -1,0 +1,11 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "project",
+            "deploy_token"
+        ]
+    },
+    "sensitive": true,
+    "description": "Grants write access to project deploy tokens."
+}
