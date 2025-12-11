@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Policy Prediction</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    body { margin:0; background:#f9fafb; color:#111827; width:320px; }
+    header{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid #e5e7eb; background:#fff; }
+    header h1{ font-size:14px; margin:0; flex:1; }
+    #back-btn{ background:transparent; border:none; font-size:14px; cursor:pointer; color:#2563eb; padding:6px 8px; border-radius:6px; }
+
+    main{ padding:12px; display:flex; flex-direction:column; gap:12px; }
+
+    .card{
+      background:#fff; border:2px solid #dbeafe; border-left:6px solid #2563eb;
+      border-radius:12px; padding:12px; box-shadow:0 6px 16px rgba(0,0,0,.06);
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .card-title{ font-size:14px; font-weight:600; color:#0f172a; }
+    .hint{ font-size:13px; color:#6b7280; }
+    .card textarea{
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box; 
+    margin: 0;             
+    }
+
+    textarea{
+      width:100%; min-height:80px; resize:vertical;
+      padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; background:#fff; color:#111827;
+    }
+    .btn{ background:#2563eb; color:#fff; border:none; border-radius:8px; padding:8px 10px; font-size:13px; cursor:pointer; }
+    .btn:hover{ background:#1d4ed8; }
+    .btn.ghost{ background:transparent; color:#374151; border:1px solid #e5e7eb; }
+    .btn.ghost:hover{ background:#f3f4f6; }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+    .row{ display:flex; gap:8px; align-items:center; }
+    .row-right{ display:flex; justify-content:flex-end; gap:8px; }
+
+    .separator{ display:flex; align-items:center; gap:8px; color:#6b7280; font-size:12px; margin:4px 0; }
+    .separator::before, .separator::after{ content:""; flex:1; height:1px; background:#e5e7eb; }
+
+    /* Chips */
+    .chip{ display:inline-block; padding:6px 10px; border:1px solid #e5e7eb; border-radius:9999px; background:#fff; cursor:pointer; margin:4px 6px 0 0; font-size:12px; }
+    .chip:hover{ background:#f3f4f6; }
+    .chip.disabled{ opacity:.55; cursor:default; background:#f9fafb; }
+    .chip.disabled:hover{ background:#f9fafb; }
+
+    /* Small tag list for restriction state */
+    .tag{ display:inline-block; padding:3px 8px; border:1px solid #e5e7eb; border-radius:9999px; background:#fff; margin:2px 6px 0 0; font-size:12px; }
+
+    .muted{ color:#6b7280; font-size:13px; }
+    .status{ font-size:12px; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:6px 8px; border-radius:8px; display:none; }
+    .status.error{ color:#991b1b; background:#fef2f2; border-color:#fecaca; }
+
+    /* Subtle section (not a card) */
+    .section { padding: 4px 2px 8px; }
+    .section-header { display:flex; flex-direction:column; gap:2px; }
+    .section-title { font-size:13px; font-weight:600; color:#111827; }
+    .section-hint { font-size:12px; color:#6b7280; }
+
+    .section-actions { margin-top:6px; }
+
+    /* Make the ghost buttons look balanced in a quiet section */
+    .btn.ghost { background:transparent; color:#374151; border:1px solid #e5e7eb; }
+    .btn.ghost:hover { background:#f3f4f6; }
+
+    select{ width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; font-size:13px; }
+  </style>
+  <script type="module" src="prediction.js"></script>
+</head>
+<body>
+  <header>
+    <button id="back-btn">← Back</button>
+    <h1>Policy Prediction</h1>
+  </header>
+
+<main>
+  <!-- Task input -->
+  <div class="card">
+    <div class="card-title">Describe your task</div>
+    <div class="hint">We’ll suggest relevant domains and the least-privilege rules for the domain you pick.</div>
+    <textarea id="taskInput" placeholder="e.g., Create a new deploy token and comment on the first issue…"></textarea>
+    <div class="row-right">
+      <button id="suggestDomainsBtn" class="btn">Get domain suggestions</button>
+    </div>
+    <div id="apiKeyHint" class="muted" style="display:none;">
+      No API key found. Add one in <a href="settings.html">Settings</a> to enable suggestions.
+    </div>
+    <div id="taskStatus" class="status"></div>
+  </div>
+
+    <!-- ALWAYS VISIBLE: Restriction section (subtle, not a card) -->
+    <section id="restrictionPanel" class="section">
+    <div class="section-header">
+        <span class="section-title">Domain restriction</span>
+        <span class="section-hint">When active, only requests to the listed domains are allowed.</span>
+    </div>
+
+    <div id="predictedSection" style="display:none;">
+        <div class="separator"><span>Model-predicted relevant domains</span></div>
+        <div id="chips" class="row" style="flex-wrap:wrap;"></div>
+    </div>
+
+    <div class="row-right section-actions">
+        <button id="applyRestrictionBtn" class="btn ghost">Restrict to predicted domains</button>
+        <button id="clearRestrictionBtn" class="btn ghost">Clear restriction</button>
+    </div>
+
+    <div class="separator"><span>Current allowed domains</span></div>
+    <div id="restrictionState" class="muted">No restriction is active.</div>
+    </section>
+
+  <!-- RESULTS: visible after LLM suggest -->
+  <div id="results" style="display:none;">
+    <div class="separator"><span>Pick a domain to predict its policy</span></div>
+    <div class="row">
+      <select id="domainSelect"></select>
+    </div>
+    <div class="row-right">
+      <button id="predictPolicyBtn" class="btn">Predict domain specific policy</button>
+    </div>
+  </div>
+</main>
+</body>
+</html>

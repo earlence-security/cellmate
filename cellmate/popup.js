@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("settings-btn").addEventListener("click", () => {
     window.location.href = "settings.html";
   });
+  
+  document.getElementById("predict-btn").addEventListener("click", () => {
+    window.location.href = "prediction.html";
+  });
 
   const content = document.getElementById("content");
   const actionBtn = document.getElementById("action-btn");

@@ -1,5 +1,6 @@
 // import policy engine classes
 import { Policy, Sitemap, Action } from "./policyEngine.js";
+import { requestPolicySuggestions } from "./llmClient.js";
 
 const qs = sel => document.querySelector(sel);
 
@@ -13,6 +14,7 @@ const storageGet = (keys) => new Promise((res, rej) =>
 const storageSet = (obj) => new Promise((res, rej) =>
   chrome.storage.local.set(obj, () => chrome.runtime.lastError ? rej(chrome.runtime.lastError) : res())
 );
+
 
 // --- Helpers ---
 async function getCurrentDomain() {
@@ -167,101 +169,6 @@ function setStatus(html) {
 }
 
 /**
- * Build the tool spec for the policy suggestion LLM call.
- */
-function buildPolicySuggestionTool(rulesMap, domain) {
-  const ruleProps = {};
-  const ruleReq = [];
-  for (const [slug, ruleObj] of Object.entries(rulesMap)) {
-    ruleProps[slug] = {
-      type: "boolean",
-      description: ruleObj.description || ""
-    };
-    ruleReq.push(slug);
-  }
-
-  return {
-    name: "policy_suggestion",
-    description:
-      `Given the provided user task on the domain ${domain}, suggest a set of least privileges needed to complete that task. ` +
-      `Privileges are expressed with rules, with each rule representing some set of privilege on the given domain. ` +
-      `Suggest using a well-structured JSON object, in which, in their provided order, rules are assigned either True or False ` +
-      `depending on whether privileges granted by a given rule is required to enable the user task.`,
-    input_schema: {
-      type: "object",
-      properties: {
-        suggested_rules: {
-          type: "object",
-          description:
-            "The set of suggested rules based on provided user task. Input object should include all provided rules as keys with boolean values that indicate whether each rule is required.",
-          properties: ruleProps,
-          required: ruleReq,
-          additionalProperties: false
-        },
-        description: {
-          type: "string",
-          description: "Provide some reasoning for the suggested rules."
-        }
-      },
-      required: ["suggested_rules", "description"]
-    }
-  };
-}
-
-/**
- * Call the LLM with the given user task and return suggested rules.
- */
-async function fetchSuggestionsFromLLM({ apiKey, userTask, rulesMap, domain }) {
-  const tool = buildPolicySuggestionTool(rulesMap, domain);
-
-  const payload = {
-    model: "claude-sonnet-4-5",
-    max_tokens: 1024,
-    tools: [tool],
-    tool_choice: { type: "tool", name: "policy_suggestion" },
-    messages: [
-      {
-        role: "user",
-        content: `Suggest a set of rules of the user task: ${userTask}.`
-      }
-    ]
-  };
-
-  const resp = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-      "anthropic-dangerous-direct-browser-access": "true" // to allow CORS from browser extensions
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => "");
-    throw new Error(`LLM HTTP ${resp.status}: ${text || resp.statusText}`);
-  }
-
-  const data = await resp.json();
-
-  // Expect: first content item is a tool_use with name "policy_suggestion"
-  const tu = (data.content || []).find(
-    c => c?.type === "tool_use" && c.name === "policy_suggestion"
-  );
-
-  const input = tu?.input || {};
-  const suggestedRules = input.suggested_rules || {};
-  const description = input.description || "";
-
-  // Log as requested
-  console.log("[LLM] suggested_rules:", suggestedRules);
-  console.log("[LLM] description:", description);
-
-  return { suggestedRules, description, raw: data };
-}
-
-/**
  * Render the rules list, with suggested rules on top separated by a line.
  */
 function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keepSelectedSlugs }) {
@@ -284,7 +191,7 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
       const row = document.createElement("div");
       row.className = "rule-row";
       row.innerHTML = `
-        <div class="rule-name">${slug}</div>
+        <div class="rule-name">${rulesMap[slug].description}</div>
         <label class="toggle">
           <input type="checkbox" id="${id}" ${keepSelectedSlugs.includes(slug) ? "checked" : ""}>
           <span class="slider"></span>
@@ -305,7 +212,7 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
       const row = document.createElement("div");
       row.className = "rule-row";
       row.innerHTML = `
-        <div class="rule-name">${slug}</div>
+        <div class="rule-name">${rulesMap[slug].description}</div>
         <label class="toggle">
           <input type="checkbox" id="${id}" ${keepSelectedSlugs.includes(slug) ? "checked" : ""}>
           <span class="slider"></span>
@@ -318,33 +225,47 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
 
 
 (async function main() {
-  const backBtn = qs("#back-btn");
-  const submitBtn = qs("#submit-btn");
-  const suggestInput = qs("#suggestInput");
-  const suggestBtn = qs("#suggestBtn");
+  const backBtn = document.getElementById("back-btn");
+  const submitBtn = document.getElementById("submit-btn");
 
-  const domain = await getCurrentDomain();
+  const params = new URLSearchParams(location.search);
+  const forcedDomain = params.get("domain");
+  const predictFlag = params.get("predict") === "1";
+  const taskFromURL = params.get("task") ? decodeURIComponent(params.get("task")) : null;
 
-  // Back at any time before submit
-  backBtn.addEventListener("click", () => {
-    window.location.href = "popup.html";
-  });
+  backBtn.addEventListener("click", () => (window.location.href = "popup.html"));
+
+  // Pick domain: URL param > current tab
+  const domain = forcedDomain || await getCurrentDomain();
 
   // Load any existing entry for this domain
-  const stored = await storageGet(domain);
+  const stored = await new Promise((res, rej) =>
+    chrome.storage.local.get(domain, r => chrome.runtime.lastError ? rej(chrome.runtime.lastError) : res(r)));
   const existingEntry = stored[domain] || null;
   const existingPolicy = existingEntry?.policy || null;
   const storedSlugs = existingEntry?.selected_rule_slugs || [];
 
-  // Attempt to load resources for the domain
+  // Attempt to load resources for the (possibly forced) domain
   let resources;
   try {
-    resources = await loadDomainResources(domain);
+    resources = await (async () => {
+      const base = `resources/${domain}`;
+      const [template, sitemap, rulesIndex] = await Promise.all([
+        fetchJson(`${base}/policy.json`),
+        fetchJson(`${base}/sitemap.json`),
+        fetchJson(`${base}/rules/index.json`)
+      ]);
+      const entries = await Promise.all(
+        rulesIndex.map(async fname => {
+          const obj = await fetchJson(`${base}/rules/${fname}`);
+          const slug = fname.replace(/\.json$/i, "");
+          return [slug, obj];
+        })
+      );
+      return { template, rulesIndex, rulesMap: Object.fromEntries(entries), sitemap };
+    })();
   } catch (e) {
     setStatus(`Policy setup is unavailable for <b>${domain}</b> as resources for this domain are not found.`);
-
-    const suggestCard = qs("#suggestCard");
-    suggestCard.style.display = "none";
     submitBtn.disabled = true;
     return;
   }
@@ -359,60 +280,40 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
     setStatus(`Please select rules from below to add to your policy for <b>${domain}</b>.`);
   }
 
+  // Initial render (plain list)
   renderRulesList(domain, rulesMap, preselected);
   submitBtn.disabled = false;
 
-  // LLM policy prediction related logic
-  suggestBtn.addEventListener("click", async () => {
-    const taskText = (suggestInput.value || "").trim();
-    if (!taskText) {
-      console.warn("[edit] No suggestion text entered.");
-      return;
-    }
-
-    // Disable until done
-    suggestBtn.disabled = true;
-
+  // If predict=1 and task provided, auto-run policy suggestions and re-render grouped view
+  if (predictFlag && taskFromURL) {
     try {
-      // Get API key from local storage
       const { api_key } = await new Promise(res => chrome.storage.local.get("api_key", res));
-      if (!api_key) {
-        console.warn("[edit] No API key found in storage. Set one in Settings.");
-        suggestBtn.disabled = false;
-        return;
+      if (api_key) {
+        const { suggestedRules } = await requestPolicySuggestions({
+          apiKey: api_key,
+          userTask: taskFromURL,
+          rulesMap,
+          domain
+        });
+
+        const suggestedTrue = Object.entries(suggestedRules)
+          .filter(([, v]) => v === true)
+          .map(([slug]) => slug);
+
+        const keepSelected = getSelectedSlugs(); // preserve prior checks
+        renderRulesWithSuggestions({
+          domain,
+          rulesMap,
+          suggestedTrueSlugs: suggestedTrue,
+          keepSelectedSlugs: keepSelected
+        });
+      } else {
+        console.warn("[edit] No API key found; skipping suggestion.");
       }
-
-      // Call LLM
-      const { suggestedRules } = await fetchSuggestionsFromLLM({
-        apiKey: api_key,
-        userTask: taskText,
-        rulesMap,
-        domain
-      });
-
-      // Decide which slugs are suggested TRUE
-      const suggestedTrue = Object.entries(suggestedRules)
-        .filter(([, v]) => v === true)
-        .map(([slug]) => slug);
-
-      // Keep current selections as-is
-      const keepSelected = getSelectedSlugs();
-
-      // Re-render with sections
-      renderRulesWithSuggestions({
-        domain,
-        rulesMap,
-        suggestedTrueSlugs: suggestedTrue,
-        keepSelectedSlugs: keepSelected
-      });
-
     } catch (err) {
-      console.error("[edit] LLM suggestion failed:", err);
-    } finally {
-      // Re-enable regardless of success/failure
-      suggestBtn.disabled = false;
+      console.error("[edit] Auto-suggestion failed:", err);
     }
-  });
+  }
 
   // Submit button logic
   submitBtn.addEventListener("click", async () => {
