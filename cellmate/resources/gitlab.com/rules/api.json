@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "match": "*",
+    "description": "Grants complete read/write access, including all groups and projects, the container registry, the dependency proxy, and the package registry."
+}

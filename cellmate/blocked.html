@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Navigation Blocked</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #fff;
+      color: #000;
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    .center {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .box {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 16px;
+      font-weight: 700;
+    }
+    p {
+      margin: 0 0 14px;
+    }
+    .domains {
+      margin-top: 10px;
+      display: inline-block;
+      text-align: left;      /* easier to scan a list */
+    }
+    .domains ul {
+      margin: 8px 0 0;
+      padding: 0 0 0 18px;   /* standard bullet indent */
+    }
+    .muted { opacity: .8; }
+  </style>
+  <script defer src="blocked.js"></script>
+</head>
+<body>
+  <div class="center">
+    <div class="box">
+      <h1>Navigation blocked by Cellmate</h1>
+      <p id="why" class="muted"></p>
+
+      <div class="domains" id="domainsBlock" style="display:none;">
+        <p><strong>Allowed domains for this navigation:</strong></p>
+        <ul id="allowedList"></ul>
+      </div>
+
+      <p id="prompt" class="muted" style="margin-top:16px;"></p>
+    </div>
+  </div>
+</body>
+</html>
