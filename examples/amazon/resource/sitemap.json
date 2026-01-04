@@ -3,22 +3,19 @@
         "semantic_action": "buy_now",
         "description": "Buy an item now",
         "url": "https://www.amazon.com/checkout/entry/buynow",
-        "method": "POST",
-        "body": {}
+        "method": "POST"
     },
     {
         "semantic_action": "view_shopping_cart",
         "description": "View shopping cart",
         "url": "https://www.amazon.com/gp/cart/view.html*",
-        "method": "GET",
-        "body": {}
+        "method": "GET"
     },
     {
         "semantic_action": "checkout_shopping_cart",
         "description": "Checkout shopping cart",
         "url": "https://www.amazon.com/checkout/entry/cart*",
-        "method": "GET",
-        "body": {}
+        "method": "GET"
     },
     {
         "semantic_action": "place_order",

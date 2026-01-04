@@ -1,0 +1,16 @@
+{
+  "effect": "condition",
+  "actions": [
+    "place_order"
+  ],
+  "condition": {
+    "name": "amazon_allow_purchase_if_amount_leq",
+    "args": [
+      "total_amount"
+    ],
+    "parameters": {
+      "max_amount": "<number>"
+    }
+  },
+  "description": "Allow purchase if total amount is less than or equal to a specified amount."
+}
