@@ -14,7 +14,9 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 // Cache latest DOM snapshots sent from content scripts
-// Structure: snapshots.get(tabId) -> Map(url -> Map(selector -> { value, ts }))
+// tabId -> { url -> { selector -> { value, ts } } }
+// Structure: Map -> Object -> Object
+// Example: snapshots.get(tabId)[url][selector] = { value: "...", ts: 1234567890 }
 const snapshots = new Map();
 
 // -----------------------------------------------------------------------------
@@ -70,24 +72,25 @@ function cacheSnapshot(tabId, url_pattern, selector, value) {
   if (!tabId && tabId !== 0) return;
   let tabMap = snapshots.get(tabId);
   if (!tabMap) {
-    tabMap = new Map();
+    tabMap = {};
     snapshots.set(tabId, tabMap);
   }
-  let urlMap = tabMap.get(url_pattern);
-  if (!urlMap) {
-    urlMap = new Map();
-    tabMap.set(url_pattern, urlMap);
+  if (!tabMap[url_pattern]) {
+    tabMap[url_pattern] = {};
   }
-  urlMap.set(selector, { value, ts: Date.now() });
+  tabMap[url_pattern][selector] = value;
   console.log(`[PolicyRunner] Cached snapshot for tab ${tabId} url ${url_pattern} selector ${selector}:`, value);
 }
 
 function cacheSnapshotForTab(tabId, data) {
     // Initialize tab cache if missing
     if (!tabId && tabId !== 0) return;
-    let tabMap = snapshots.get(tabId);
-    snapshots.set(tabId, data);
-
+    // data: { url_pattern -> { selector -> value } }
+    for (const url_pattern in data) {
+        for (const selector in data[url_pattern]) {
+            cacheSnapshot(tabId, url_pattern, selector, data[url_pattern][selector]);
+        }
+    }
     console.log(`[PolicyRunner] Cached snapshot for tab ${tabId}:`, data);
 }
 
