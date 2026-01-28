@@ -26,13 +26,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   function getCurrentDomain() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        let url = new URL(tabs[0].url);
-        resolve(url.hostname);
+        if (!tabs || !tabs[0] || !tabs[0].url) {
+          return reject(new Error("No active tab URL"));
+        }
+
+        try {
+          const url = new URL(tabs[0].url);
+          resolve(url.origin); // <-- includes scheme + host (+ port)
+        } catch (e) {
+          reject(e);
+        }
       });
     });
   }
+
 
   const domain = await getCurrentDomain();
 

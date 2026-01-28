@@ -19,7 +19,10 @@ const storageSet = (obj) => new Promise((res, rej) =>
 // --- Helpers ---
 async function getCurrentDomain() {
   const [tab] = await tabsQuery({ active: true, currentWindow: true });
-  return new URL(tab.url).hostname;
+  if (!tab?.url) {
+    throw new Error("No active tab URL");
+  }
+  return new URL(tab.url).origin;
 }
 
 async function fetchJson(extPath) {
@@ -41,9 +44,11 @@ async function loadDomainResources(domain) {
   // resources/<domain>/rules/index.json  -> ["read_api.json", ...]
   const base = `resources/${domain}`;
   const [template, sitemap, rulesIndex] = await Promise.all([
-    fetchJson(`${base}/policy.json`),
-    fetchJson(`${base}/sitemap.json`),
-    fetchJson(`${base}/rules/index.json`)
+    // fetchJson(`${base}/policy.json`),   // <-- TODO: change back to original line
+    // fetchJson(`${base}/sitemap.json`),    // <-- TODO: change back to original line
+    fetchJson(`${base}/policy_webarena.json`), // <-- modified for testing on webarena environment
+    fetchJson(`${base}/sitemap_webarena.json`), // <-- modified for testing on webarena environment
+    fetchJson(`${base}/rules/index.json`),
   ]);
 
   // Load all rule JSONs listed in index.json
@@ -132,7 +137,8 @@ function compilePolicy(template, rulesMap, selectedSlugs) {
  */
 function computeTargetRequests(policyObj, sitemapObj) {
   const policy = Policy.fromDict(policyObj);
-  const sitemap = new Sitemap(sitemapObj);
+  const domain = policy.domains[0]; // use first domain for sitemap construction
+  const sitemap = new Sitemap(domain, sitemapObj);
 
   const targets = [];
   for (const entry of sitemap.entries) {
@@ -251,9 +257,9 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
     resources = await (async () => {
       const base = `resources/${domain}`;
       const [template, sitemap, rulesIndex] = await Promise.all([
-        fetchJson(`${base}/policy.json`),
-        fetchJson(`${base}/sitemap.json`),
-        fetchJson(`${base}/rules/index.json`)
+        fetchJson(`${base}/policy_webarena.json`),  // <-- modified for testing on webarena environment
+        fetchJson(`${base}/sitemap_webarena.json`),  // <-- modified for testing on webarena environment
+        fetchJson(`${base}/rules/index.json`),
       ]);
       const entries = await Promise.all(
         rulesIndex.map(async fname => {
@@ -330,10 +336,15 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
         target_requests: targetRequests
       };
 
-      await storageSet({ [domain]: payload });
+      // TODO: Remove this hack before shipping
+      if (domain === "gitlab.com") console.log("[hack] remapping gitlab.com to webarena gitlab instance");
+      const actualDomain = domain === "gitlab.com" ? "http://16.58.0.143:8023" : domain;
+
+      await storageSet({ [actualDomain]: payload });
+      console.log("[edit] Stored updated policy for", actualDomain, JSON.parse(JSON.stringify(payload)));
 
       // Redirect back to popup with a small success flag & domain for banner
-      const q = new URLSearchParams({ updated: "1", domain }).toString();
+      const q = new URLSearchParams({ updated: "1", domain: actualDomain }).toString();
       window.location.href = `popup.html?${q}`;
     } catch (err) {
       console.error(err);

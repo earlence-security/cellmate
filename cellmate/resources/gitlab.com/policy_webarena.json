@@ -1,0 +1,17 @@
+{
+  "name": "gitlab_policy_template",
+  "description": "Policy template for GitLab",
+  "default": "allow_public",
+  "domains": ["http://16.58.0.143:8023"],
+  "allowed_domains": [
+    "gl-product-analytics.com",
+    "gravatar.com"
+  ],
+  "allowed_paths": [
+    "users/sign_in",
+    "assets/*",
+    "dashboard/*",
+    "-/manifest.json"
+  ],
+  "rules": []
+}

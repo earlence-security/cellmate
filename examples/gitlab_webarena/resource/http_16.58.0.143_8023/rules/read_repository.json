@@ -1,0 +1,10 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "read",
+            "repository"
+        ]
+    },
+    "description": "Grants read-only access to repositories on private projects."
+}

@@ -1,0 +1,12 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "read",
+            "user",
+            "personal_access_token"
+        ]
+    },
+    "sensitive": true,
+    "description": "Allow read access to user personal access tokens."
+}

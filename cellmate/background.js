@@ -1,5 +1,6 @@
 // ====== CONFIG / HELPERS =====================================================
 
+const ENABLE_INFORMATIVE_ERROR_MESSAGES = true;
 const EXT_ORIGIN = `chrome-extension://${chrome.runtime.id}`;
 
 // Turn a template URL (supports {param} and *) into a RegExp
@@ -17,7 +18,7 @@ function compileTemplateToRegex(template) {
 
 // Return host name from URL, or "" if invalid
 function hostnameOf(url) {
-  try { return new URL(url).hostname; } catch { return ""; }
+  try { return new URL(url).origin; } catch { return ""; }
 }
 
 // Policy domain match: exact or subdomain (foo.example.com matches example.com)
@@ -29,9 +30,10 @@ function domainMatches(policyDomain, urlHostname) {
 
 // Is a request from our extension context?
 function isFromExtension(details) {
+  const origin = hostnameOf(details.url);
   return (
     details.initiator === EXT_ORIGIN ||
-    details.originUrl === EXT_ORIGIN || // older Chromium
+    origin === EXT_ORIGIN || // older Chromium
     (details.tabId === -1 && details.initiator?.startsWith("chrome-extension://"))
   );
 }
@@ -98,8 +100,9 @@ let disallowUntrusted = true; // factory default: block all requests to domains 
 const policiesByDomain = Object.create(null);
 
 function setPolicyForDomain(domain, policyObj) {
-  const allowed = new Set((policyObj?.allowed_domains || []).map(String));
-  policiesByDomain[domain] = { allowedDomains: allowed, hasPolicy: true };
+  const allowedDomains = new Set((policyObj?.allowed_domains || []).map(String));
+  const allowedPaths = new Set((policyObj?.allowed_paths || []).map(String));
+  policiesByDomain[domain] = { allowedDomains, allowedPaths, hasPolicy: true };
 }
 
 function removePolicyForDomain(domain) {
@@ -113,6 +116,25 @@ function currentPolicyAllowsDest(currentDomain, destHostname) {
   if (!rec) return false;
   const allowedSet = rec.allowedDomains || new Set();
   return Array.from(allowedSet).some(ad => domainMatches(ad, destHostname));
+}
+
+// Helper: does the current page's policy allow the destination via allowed_paths?
+function currentPolicyAllowsPath(currentDomain, destUrl) {
+  if (!currentDomain) return false;
+  const rec = policiesByDomain[currentDomain];
+  if (!rec) return false;
+  const allowedSet = rec.allowedPaths || new Set();
+  try {
+    const urlObj = new URL(destUrl);
+    const path = urlObj.pathname.startsWith("/") ? urlObj.pathname.slice(1) : urlObj.pathname;
+    return Array.from(allowedSet).some(ap => {
+      const regex = compileTemplateToRegex(ap);
+      console.log("[bg] currentPolicyAllowsPath: testing", path, "against", ap, "->", regex);
+      return regex.test(path);
+    });
+  } catch {
+    return false;
+  }
 }
 
 // ====== Load resources from storage during startup ======
@@ -289,9 +311,49 @@ function deepContains(pattern, target) {
 
 const pendingActionsByRequestId = new Map();
 
+const latestBlockByTab = new Map();
+const readyTabs = new Set();
+
+if (ENABLE_INFORMATIVE_ERROR_MESSAGES) {
+  chrome.runtime.onMessage.addListener((msg, sender) => {
+    if (!sender.tab) return;
+
+    const tabId = sender.tab.id;
+
+    if (msg.type === "CS_READY") {
+      readyTabs.add(tabId);
+    }
+
+    if (msg.type === "PAGE_UPDATED") {
+      const lastBlock = latestBlockByTab.get(tabId);
+      if (lastBlock && readyTabs.has(tabId)) {
+        chrome.tabs.sendMessage(tabId, lastBlock);
+        latestBlockByTab.delete(tabId);
+      }
+    }
+  });
+
+  // Cleanup on tab close
+  chrome.tabs.onRemoved.addListener((tabId) => {
+    latestBlockByTab.delete(tabId);
+    readyTabs.delete(tabId);
+  });
+
+  // Clear on main-frame navigation
+  chrome.webNavigation.onCommitted.addListener((details) => {
+    if (details.frameId !== 0) return; // main frame only
+
+    const tabId = details.tabId;
+
+    latestBlockByTab.delete(tabId);
+    readyTabs.delete(tabId);
+  });
+};
+
 chrome.webRequest.onBeforeRequest.addListener(
   function onBeforeRequest(details) {
     // always allow extension's own requests
+    console.log("[bg] onBeforeRequest:", details.method, details.url);
     if (isFromExtension(details)) {
       return {};
     }
@@ -362,9 +424,55 @@ chrome.webRequest.onBeforeRequest.addListener(
     }
 
     // -------- [3] Target matching (deny/allow_public) --------
+    const currentDomain = tabTopDomains.get(details.tabId) || null;
+    if (currentDomain && policiesByDomain[currentDomain]) {
+      if (currentPolicyAllowsPath(currentDomain, details.url)) {
+        // allowed by path allowlist; skip target matching
+        return {};
+      }
+    }
     const bodyObj = parseRequestBody(details);
     const match = findTargetForRequest(destHostname, method, details.url, bodyObj);
     if (match) {
+      console.log("[bg] Target match found:", method, details.url, "->", match.decision, "via", match.rawUrl);
+      // -----------
+      // OPTIONAL: Signal the agent with informative error message.
+      // If this is a top-level navigation, redirect to our explainer page
+      // If subresource, notify content script to show in-page block message.
+      // -----------
+      if (ENABLE_INFORMATIVE_ERROR_MESSAGES) {
+        console.log("[bg] details.type:", details.type);
+        if (details.type === "main_frame") {
+          const u = new URL(chrome.runtime.getURL("blocked.html"));
+          // keep params short and safe for URLs
+          u.searchParams.set("reason", "predicted_allowlist");
+          u.searchParams.set("dest", destHostname);
+          if (currentDomain) u.searchParams.set("current", currentDomain);
+          // optional: show whether allowlist is on
+          u.searchParams.set("active", String(predictedAllowlistActive));
+          // console.log("[bg] Redirecting to informative block page:", u.toString());
+          console.log("[bg] Opening informative block page via tabs.update:", u.toString());
+
+          chrome.tabs.update(details.tabId, { url: u.toString() });
+
+          return { cancel: true };
+        } else {
+          // Notify the tab to show an in-page block message
+          const blockMsg = {
+            type: "BLOCK_EVENT",
+            reason: "blocked_by_policy",
+            url: details.url,
+            method: details.method
+          };
+
+          latestBlockByTab.set(details.tabId, blockMsg);
+
+          if (readyTabs.has(details.tabId)) {
+            chrome.tabs.sendMessage(details.tabId, blockMsg);
+          }
+        }        
+      }
+
       if (match.decision === "deny") {
         console.log("[bg] DENY (target):", method, details.url, "matched", match.rawUrl);
         return { cancel: true };

@@ -1,0 +1,20 @@
+[
+    "api.json", 
+    "read_project_issue.json", 
+    "read_user_key.json",                    
+    "write_project_issue.json",  
+    "write_user_key.json",
+    "read_api.json",                   
+    "read_project.json",        
+    "read_user_personal_access_token.json",
+    "write_project.json",        
+    "write_user_personal_access_token.json",
+    "read_project_deploy_key.json",    
+    "read_repository.json",     
+    "write_project_deploy_key.json",         
+    "write_repository.json",
+    "read_project_deploy_token.json",  
+    "read_user.json",           
+    "write_project_deploy_token.json",       
+    "write_user.json"
+]

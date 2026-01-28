@@ -1,0 +1,644 @@
+[
+    {
+        "semantic_action": "List deploy keys for project",
+        "path": "{group}/{project}/-/deploy_keys",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Add deploy key for a project",
+        "path": "{group}/{project}/-/deploy_keys",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Update deploy key",
+        "path": "{group}/{project}/-/deploy_keys/{key_id}",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "update"
+        ]
+    },
+    {
+        "semantic_action": "Delete deploy key",
+        "path": "{group}/{project}/-/deploy_keys/{key_id}/disable",
+        "method": "PUT",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_key",
+            "delete"
+        ]
+    },
+    {
+        "semantic_action": "Create a project deploy token",
+        "path": "{group}/{project}/-/settings/repository/deploy_token/create",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_token",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Delete a project deploy token",
+        "path": "{group}/{project}/-/deploy_tokens/{token_id}/revoke",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "deploy_token",
+            "delete"
+        ]
+    },
+    {
+        "semantic_action": "List all members of a group or project",
+        "path": "{group}/{project}/-/project_members",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Add a member to a group or project",
+        "path": "api/v4/projects/{project_id}/invitations",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "semantic_action": "Edit a member of a group or project",
+        "path": "{group}/{project}/-/project_members/{user_id}",
+        "method": "PUT",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "semantic_action": "Remove a member from a group or project",
+        "path": "{group}/{project}/-/project_members/{user_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "member",
+            "delete"
+        ]
+    },
+    {
+        "semantic_action": "Schedule an export",
+        "path": "{group}/{project}/export",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "export",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Import a file",
+        "path": "import/gitlab_project",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "import",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "List webhooks for a project",
+        "path": "{group}/{project}/-/hooks",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Add a webhook to a project",
+        "path": "{group}/{project}/-/hooks",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Edit a project webhook",
+        "path": "{group}/{project}/-/hooks/{hook_id}",
+        "method": "POST",
+        "body": {
+            "_method": "patch"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "update"
+        ]
+    },
+    {
+        "semantic_action": "Delete project webhook",
+        "path": "{group}/{project}/-/hooks/{hook_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "hook",
+            "delete"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "semantic_action": "Get a single project",
+        "path": "{group}/{project}",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Create a project",
+        "path": "projects",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Edit a project",
+        "path": "{group}/{project}",
+        "method": "POST",
+        "body": {
+            "_method": "patch"
+        },
+        "regex": "^https://gitlab\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$",
+        "resource_types": [
+            "main_frame"
+        ],
+        "tags": [
+            "project",
+            "update"
+        ]
+    },
+    {
+        "semantic_action": "Archive a project",
+        "path": "{group}/{project}/archive",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "archive",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Unarchive a project",
+        "path": "{group}/{project}/unarchive",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "unarchive",
+            "create"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "semantic_action": "Delete a project",
+        "path": "{group}/{project}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "^https://gitlab\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?$",
+        "resource_types": [
+            "main_frame"
+        ],
+        "tags": [
+            "project",
+            "delete"
+        ]
+    },
+    {
+        "semantic_action": "Restore a project marked for deletion",
+        "path": "{group}/*/restore",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "restore",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Transfer a project to a new namespace",
+        "path": "{group}/{project}/transfer",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "transfer",
+            "update"
+        ],
+        "children": [],
+        "example_urls": [],
+        "priority": 2
+    },
+    {
+        "semantic_action": "List repository tree",
+        "path": "{group}/{project}/-/tree/{branch}",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "tree",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Get contributor list",
+        "path": "{group}/{project}/-/graphs/main",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "contributors",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Get file from repository",
+        "path": "{group}/{project}/-/blob/{branch}/{file_path}*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Get file blame from repository",
+        "path": "{group}/{project}/-/blame/{branch}/{file_path}*",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "blame",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Create new file in repository",
+        "path": "{group}/{project}/-/create/{branch}/{dir_path}",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Update existing file in repository",
+        "path": "{group}/{project}/-/update/{branch}/{file_path}",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "update"
+        ]
+    },
+    {
+        "semantic_action": "Delete existing file in repository",
+        "path": "{group}/{project}/-/blob/{branch}/{file_path}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "repository",
+            "file",
+            "delete"
+        ]
+    },
+    {
+        "semantic_action": "List all SSH keys",
+        "path": "-/profile/keys",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "key",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Add an SSH key",
+        "path": "-/profile/keys",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "key",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Delete an SSH key for a user",
+        "path": "-/profile/keys/{key_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "key",
+            "delete"
+        ]
+    },
+    {
+        "semantic_action": "Create a personal access token for a user",
+        "path": "-/profile/personal_access_tokens",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "personal_access_token",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "List personal access tokens for a user",
+        "path": "-/profile/personal_access_tokens",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "personal_access_token",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Delete a personal access token for a user",
+        "path": "-/profile/personal_access_tokens/{token_id}/revoke",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "personal_access_token",
+            "delete"
+        ]
+    },
+    {
+        "semantic_action": "Modify a user",
+        "path": "-/profile",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        },
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "user",
+            "update"
+        ]
+    },
+    {
+        "semantic_action": "List project issues",
+        "path": "{group}/{project}/-/issues",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "read"
+        ],
+        "children": [
+            {
+                "method": "POST",
+                "path": "api/graphql",
+                "body": {
+                    "operationName": "getIssuesCount"
+                }
+            },
+            {
+                "method": "POST",
+                "path": "api/graphql",
+                "body": {
+                    "operationName": "getIssues"
+                }
+            }
+        ]
+    },
+    {
+        "semantic_action": "Single project issue",
+        "path": "{group}/{project}/-/issues/{issue_id}",
+        "method": "GET",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "read"
+        ]
+    },
+    {
+        "semantic_action": "Add a new emoji reaction to an issue",
+        "path": "api/v4/projects/{project_id}/issues/{issue_id}/award_emoji",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "award_emoji",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Create new issue note",
+        "path": "{group}/{project}/notes*",
+        "method": "POST",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "note",
+            "create"
+        ]
+    },
+    {
+        "semantic_action": "Modify existing issue note",
+        "path": "{group}/{project}/notes/{note_id}",
+        "method": "PUT",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "note",
+            "update"
+        ]
+    },
+    {
+        "semantic_action": "Delete an issue note",
+        "path": "{group}/{project}/notes/{note_id}",
+        "method": "DELETE",
+        "body": {},
+        "regex": "",
+        "resource_types": [],
+        "tags": [
+            "project",
+            "issue",
+            "note",
+            "delete"
+        ]
+    }
+]

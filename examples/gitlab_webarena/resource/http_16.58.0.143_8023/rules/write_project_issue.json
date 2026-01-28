@@ -1,0 +1,10 @@
+{
+    "effect": "allow",
+    "match": {
+        "tags": [
+            "project",
+            "issue"
+        ]
+    },
+    "description": "Allow read/write access to project issues."
+}

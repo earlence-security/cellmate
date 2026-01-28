@@ -44,7 +44,7 @@ class Action {
 
     try {
       const parsed = new URL(url);
-      this.domain = parsed.hostname;
+      this.domain = parsed.origin; // <-- includes scheme + host (+ port)
     } catch {
       this.domain = null;
     }
@@ -190,14 +190,17 @@ class Policy {
 
   evaluate(action) {
     if (this.domains !== "*" && !this.domains.some(domain => this._domainMatches(domain, action))) {
+      console.log("[Policy] Domain mismatch:", action.domain, "not in", this.domains);
       return "deny";
     }
     for (let i = 0; i < this.rules.length; i++) {
       const rule = this.rules[i];
       if (rule.appliesTo(action)) {
+        console.log("[Policy] Matched rule:", rule, "for action:", action);
         return rule.effect;
       }
     }
+    console.log("[Policy] No matching rule, using default:", this.default);
     return this.default;
   }
 
@@ -236,10 +239,10 @@ class SitemapEntry {
 // Sitemap
 // -------------------------
 class Sitemap {
-  constructor(jsonData = null) {
+  constructor(domain,jsonData = null) {
     this.entries = [];
     if (jsonData) {
-      this.parseSitemapJson(jsonData);
+      this.parseSitemapJson(jsonData, domain);
     }
   }
 
@@ -249,10 +252,16 @@ class Sitemap {
     return new RegExp(`^${pattern}$`);
   }
 
-  parseSitemapJson(jsonData) {
+  parseSitemapJson(jsonData, domain) {
+    if (!domain) {
+      throw new Error("Domain must be provided to parse sitemap JSON.");
+    }
+    if (domain.endsWith("/")) {
+      domain = domain.slice(0, -1);
+    }
     const data = typeof jsonData === "string" ? JSON.parse(jsonData) : jsonData;
     for (const item of data) {
-      const urlTemplate = item.url;
+      const urlTemplate = domain + "/" + item.path;  // TODO: revert back to full url or not?
       const method = (item.method || "").toUpperCase();
       const tags = item.tags;
       const semanticAction = item.semantic_action || "";
