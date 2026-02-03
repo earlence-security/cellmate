@@ -1,10 +1,5 @@
 {
     "effect": "allow",
-    "match": {
-        "tags": [
-            "read",
-            "repository"
-        ]
-    },
+    "action": ["List repository tree", "Get file from repository", "Get file blame from repository"],
     "description": "Grants read-only access to repositories on private projects."
 }

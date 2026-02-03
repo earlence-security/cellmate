@@ -1,12 +1,6 @@
 {
     "effect": "allow",
-    "match": {
-        "tags": [
-            "read",
-            "user",
-            "key"
-        ]
-    },
+    "action": ["List all SSH keys"],
     "sensitive": true,
     "description": "Allow read access to user keys."
 }

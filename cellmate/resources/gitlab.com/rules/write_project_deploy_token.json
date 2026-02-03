@@ -1,11 +1,6 @@
 {
     "effect": "allow",
-    "match": {
-        "tags": [
-            "project",
-            "deploy_token"
-        ]
-    },
+    "action": ["Create a project deploy token", "Delete a project deploy token"],
     "sensitive": true,
     "description": "Grants write access to project deploy tokens."
 }

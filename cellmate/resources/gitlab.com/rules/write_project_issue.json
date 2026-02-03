@@ -1,10 +1,5 @@
 {
     "effect": "allow",
-    "match": {
-        "tags": [
-            "project",
-            "issue"
-        ]
-    },
+    "action": ["List project issues", "Single project issue", "New issue", "Edit an issue", "Delete an issue", "Add a new emoji reaction to an issue", "Create new issue note", "Modify existing issue note", "Delete an issue note"],
     "description": "Allow read/write access to project issues."
 }

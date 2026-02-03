@@ -1,11 +1,5 @@
 {
     "effect": "allow",
-    "match": {
-        "tags": [
-            "read",
-            "project",
-            "issue"
-        ]
-    },
+    "action": ["List project issues", "Single project issue"],
     "description": "Allow read access to project issues."
 }

@@ -7,11 +7,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "deploy_key",
-            "read"
-        ],
         "children": [],
         "example_urls": [
             "https://gitlab.com/macaroon777sweet/test/-/deploy_keys/enabled_keys?page=1&per_page=5",
@@ -27,11 +22,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "deploy_key",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -44,11 +34,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "deploy_key",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -61,11 +46,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "deploy_key",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -78,11 +58,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "deploy_token",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -95,11 +70,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "deploy_token",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -112,11 +82,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "member",
-            "read"
-        ],
         "children": [
             {
                 "method": "GET",
@@ -138,11 +103,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "member",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -155,11 +115,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "member",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -174,11 +129,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "member",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -193,11 +143,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "export",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -210,11 +155,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "import",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -227,11 +167,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "hook",
-            "read"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -244,11 +179,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "hook",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -263,11 +193,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "hook",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -282,11 +207,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "hook",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -301,10 +221,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "read"
-        ],
         "children": [
             {
                 "method": "POST",
@@ -429,10 +345,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "read"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -445,11 +357,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "project",
-            "read"
-        ],
         "children": [],
         "example_urls": [
             "https://gitlab.com/users/macaroon777sweet/projects?skip_namespace=true"
@@ -464,10 +371,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -484,10 +387,6 @@
         "resource_types": [
             "main_frame"
         ],
-        "tags": [
-            "project",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 1
@@ -502,11 +401,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "archive",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -521,11 +415,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "unarchive",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -542,10 +431,6 @@
         "resource_types": [
             "main_frame"
         ],
-        "tags": [
-            "project",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 1
@@ -560,11 +445,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "restore",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -579,11 +459,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "transfer",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -596,12 +471,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "tree",
-            "read"
-        ],
         "children": [
             {
                 "method": "POST",
@@ -703,12 +572,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "compare",
-            "read"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -721,12 +584,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "contributors",
-            "read"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -739,12 +596,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "file",
-            "read"
-        ],
         "children": [
             {
                 "method": "POST",
@@ -793,13 +644,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "file",
-            "blame",
-            "read"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -812,12 +656,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "file",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -830,12 +668,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "file",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -850,12 +682,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "repository",
-            "file",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -868,11 +694,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "key",
-            "read"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -885,11 +706,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "key",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -904,11 +720,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "key",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -921,11 +732,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "personal_access_token",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -938,11 +744,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "personal_access_token",
-            "read"
-        ],
         "children": [],
         "example_urls": [
             "https://gitlab.com/api/v4/personal_access_tokens?user_id=29327099&sort=expires_asc&page=1&revoked=false&state=inactive"
@@ -957,11 +758,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "personal_access_token",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -974,12 +770,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "personal_access_token",
-            "rotate",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -992,10 +782,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "read"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1010,10 +796,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "user",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1026,11 +808,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "read"
-        ],
         "children": [
             {
                 "method": "POST",
@@ -1058,11 +835,6 @@
         "body": {},
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "read"
-        ],
         "children": [
             {
                 "method": "POST",
@@ -1230,11 +1002,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1249,11 +1016,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1268,11 +1030,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1287,12 +1044,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "award_emoji",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1307,12 +1058,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "note",
-            "create"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1327,12 +1072,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "note",
-            "update"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2
@@ -1347,12 +1086,6 @@
         },
         "regex": "",
         "resource_types": [],
-        "tags": [
-            "project",
-            "issue",
-            "note",
-            "delete"
-        ],
         "children": [],
         "example_urls": [],
         "priority": 2

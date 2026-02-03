@@ -1,4 +1,3 @@
-
 // -------------------------
 // Exceptions
 // -------------------------
@@ -36,10 +35,12 @@ class Endpoint {
 // -------------------------
 class Action {
   constructor(method, url, body = null, tags = [], semanticAction = null) {
-    this.method = method.toUpperCase();
+    this.method = String(method || "").toUpperCase();
     this.url = url;
     this.body = body;
-    this.tags = tags;
+
+    this.tags = Array.isArray(tags) ? tags : [];
+
     this.semanticAction = semanticAction;
 
     try {
@@ -51,163 +52,95 @@ class Action {
   }
 
   static fromEndpoint({ url, method, sitemap, body = null }) {
-    const tags = sitemap.getTags(method, url, body);
-    return new Action(method, url, body, tags);
-  }
-}
-
-// -------------------------
-// MatchBlock
-// -------------------------
-class MatchBlock {
-  constructor(tags = null) {
-    this.tags = tags;
-  }
-
-  static fromDict(data) {
-    return new MatchBlock(data.tags || null);
-  }
-
-  matches(action) {
-    if (this.tags) {
-      if (!action.tags) return false;
-      return this.tags.every(tag => action.tags.includes(tag));
+    if (!sitemap || typeof sitemap.getMatchInfo !== "function") {
+      throw new Error("Action.fromEndpoint requires a Sitemap instance with getMatchInfo()");
     }
-    return true;
-  }
-}
-
-// -------------------------
-// ExceptionBlock
-// -------------------------
-class ExceptionBlock {
-  constructor(match) {
-    this.match = match;
-  }
-
-  static fromDict(data) {
-    if (!("match" in data)) {
-      throw new Error("ExceptionBlock must have a 'match' field");
-    }
-    if (data.match === "*") {
-      throw new Error("ExceptionBlock does not support match all.");
-    }
-    return new ExceptionBlock(MatchBlock.fromDict(data.match));
-  }
-
-  matches(action) {
-    return this.match.matches(action);
-  }
-}
-
-// -------------------------
-// Rule
-// -------------------------
-class Rule {
-  constructor(effect, match = null, exceptions = null, description = null) {
-    this.effect = effect; // "allow", "deny", or "allow_public"
-    this.match = match;
-    this.exceptions = exceptions;
-    this.description = description;
-  }
-
-  static fromDict(data) {
-    return new Rule(
-      data.effect,
-      data.match ? MatchBlock.fromDict(data.match) : null,
-      data.exceptions ? data.exceptions.map(e => ExceptionBlock.fromDict(e)) : null,
-      data.description || null
-    );
-  }
-
-  appliesTo(action) {
-    if (this.match && !this.match.matches(action)) {
-      return false;
-    }
-    if (this.exceptions && this.exceptions.length > 0) {
-      if (this.exceptions.some(e => e.matches(action))) {
-        return false;
-      }
-    }
-    return true;
+    const info = sitemap.getMatchInfo(method, url, body);
+    return new Action(method, url, body, info.tags, info.semanticAction);
   }
 }
 
 // -------------------------
 // Policy
 // -------------------------
+// Policy object format expected by this engine:
+//
+// {
+//   // other fields can exist, but are ignored by the matcher
+//   rules: [
+//     { effect: "allow", action: ["read_project_deploy_token", "read_project_deploy_key"], ... },
+//     { effect: "allow", action: ["update_deploy_key"], ... },
+//     ...
+//   ]
+// }
+//
+// Semantics:
+// - If action.semanticAction is not found in sitemap => deny.
+// - If ANY rule contains action.semanticAction in its action[] => return that rule.effect.
+// - Otherwise => "deny".
 class Policy {
-  constructor(name, defaultEffect, rules, domains, description = "") {
-    this.name = name;
-    this.default = defaultEffect; // "allow", "deny", "allow_public"
+  constructor(rules = []) {
     this.rules = rules;
-    this.domains = domains;
-    this.description = description;
-
     this._postInit();
   }
 
   _postInit() {
-    const ruleEffects = new Set(this.rules.map(r => r.effect));
-
-    if (ruleEffects.has(this.default)) {
-      throw new InvalidPolicyError(
-        `Invalid policy: default='${this.default}' must not equal any rule effect ${Array.from(ruleEffects)}.`
-      );
+    // Validate and normalize rules
+    if (!Array.isArray(this.rules)) {
+      throw new InvalidPolicyError("Policy.rules must be an array");
     }
 
-    if (this.default === "allow_public" && ruleEffects.size > 1) {
-      throw new InvalidPolicyError(
-        "Invalid policy: if default='allow_public', all rules must have the same effect (all allow OR all deny)."
-      );
-    }
+    this.rules = this.rules.map((r, idx) => {
+      if (!r || typeof r !== "object") {
+        throw new InvalidPolicyError(`Policy rule at index ${idx} must be an object`);
+      }
+      const effect = String(r.effect || "").toLowerCase();
+      if (!["allow", "deny", "allow_public"].includes(effect)) {
+        throw new InvalidPolicyError(
+          `Invalid rule.effect at index ${idx}: '${r.effect}'. Expected 'allow', 'deny', or 'allow_public'.`
+        );
+      }
+      if (!("action" in r)) {
+        throw new InvalidPolicyError(`Rule at index ${idx} missing required field 'action'`);
+      }
+      if (!Array.isArray(r.action) || r.action.some(a => typeof a !== "string")) {
+        throw new InvalidPolicyError(
+          `Rule.action at index ${idx} must be an array of strings (semantic_action ids)`
+        );
+      }
 
-    if (this.default === "deny") {
-      this.rules.sort((a, b) => (a.effect === "allow_public" ? -1 : 1));
-    } else if (this.default === "allow") {
-      this.rules.sort((a, b) => (a.effect === "deny" ? -1 : 1));
-    }
+      // Normalize
+      return {
+        effect,
+        action: r.action.slice(), // keep as-is
+        description: typeof r.description === "string" ? r.description : null,
+        sensitive: Boolean(r.sensitive)
+      };
+    });
+
   }
 
   static fromDict(data) {
-    const requiredKeys = ["name", "default", "rules", "domains"];
-    for (const key of requiredKeys) {
-      if (!(key in data)) {
-        throw new Error(`Policy is missing required field: ${key}`);
-      }
+    if (!data || typeof data !== "object") {
+      throw new InvalidPolicyError("Policy.fromDict expects an object");
     }
-    if (!data.domains || data.domains.length === 0) {
-      throw new Error("Policy must have at least one domain in 'domains'");
+    if (!Array.isArray(data.rules)) {
+      throw new InvalidPolicyError("Policy object must have a 'rules' array");
     }
-    return new Policy(
-      data.name,
-      data.default,
-      data.rules.map(r => Rule.fromDict(r)),
-      data.domains,
-      data.description || ""
-    );
+    return new Policy(data.rules);
   }
 
   evaluate(action) {
-    if (this.domains !== "*" && !this.domains.some(domain => this._domainMatches(domain, action))) {
-      return "deny";
-    }
-    for (let i = 0; i < this.rules.length; i++) {
-      const rule = this.rules[i];
-      if (rule.appliesTo(action)) {
-        return rule.effect;
+    // Require a sitemap-resolved semanticAction.
+    if (!action || !action.semanticAction) return "deny";
+
+    // Find first matching rule (policy selection/ordering is handled by caller via compiled policy)
+    for (const rule of this.rules) {
+      if (rule.action.includes(action.semanticAction)) {
+        return rule.effect; // "allow" | "deny" | "allow_public"
       }
     }
-    return this.default;
-  }
-
-  _domainMatches(domainPattern, action) {
-    if (domainPattern.startsWith("*.")) {
-      const base = domainPattern.slice(2);
-      return action.domain === base || action.domain.endsWith("." + base);
-    } else {
-      return action.domain === domainPattern;
-    }
+    return "deny";
   }
 }
 
@@ -215,20 +148,23 @@ class Policy {
 // SitemapEntry
 // -------------------------
 class SitemapEntry {
-  constructor(method, urlTemplate, regex, tags, semanticAction, body = null) {
-    this.method = method;
+  constructor(method, urlTemplate, regex, semanticAction, body = null, tags = []) {
+    this.method = String(method || "").toUpperCase();
     this.urlTemplate = urlTemplate;
-    this.regex = regex;
-    this.tags = tags;
-    this.semanticAction = semanticAction;
-    this.body = body;
+    this.regex = regex; // RegExp
+    this.semanticAction = semanticAction; // string (required)
+    this.body = body || {};
+    this.tags = Array.isArray(tags) ? tags : [];
   }
 
-  match(actionMethod, actionUrl, actionBody) {
-    if (actionMethod.toUpperCase() !== this.method.toUpperCase()) return false;
-    if (!this.regex.test(actionUrl)) return false;
-    // TODO: body matching logic if needed
-    return true;
+  match(actionMethod, actionUrl /*, actionBody */) {
+    if (String(actionMethod || "").toUpperCase() !== this.method) return false;
+
+    // Self-match for template strings (your extension uses entry.urlTemplate).
+    if (actionUrl === this.urlTemplate) return true;
+
+    // Otherwise match on compiled regex.
+    return this.regex.test(actionUrl);
   }
 }
 
@@ -244,35 +180,73 @@ class Sitemap {
   }
 
   _compileTemplate(urlTemplate) {
-    let pattern = urlTemplate.replace(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, "(?<$1>[^/]+)");
-    pattern = pattern.replace(/\*/g, ".*");
-    return new RegExp(`^${pattern}$`);
+    // Escape regex metacharacters other than our placeholders and '*'.
+    // Approach:
+    //  1) Temporarily mark placeholders and '*' then escape the rest.
+    //  2) Re-introduce regex fragments.
+    const PH = "__PH__";
+    const STAR = "__STAR__";
+
+    let s = String(urlTemplate);
+
+    // Protect placeholders and '*'
+    s = s.replace(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, `${PH}$1${PH}`);
+    s = s.replace(/\*/g, STAR);
+
+    // Escape regex metacharacters
+    s = s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // Restore wildcard: '*' => '.*'
+    s = s.replaceAll(STAR, ".*");
+
+    // Restore placeholders: {name} => (?<name>[^/]+)
+    s = s.replace(new RegExp(`${PH}([a-zA-Z_][a-zA-Z0-9_]*)${PH}`, "g"), "(?<$1>[^/]+)");
+
+    return new RegExp(`^${s}$`);
   }
 
   parseSitemapJson(jsonData) {
     const data = typeof jsonData === "string" ? JSON.parse(jsonData) : jsonData;
+    if (!Array.isArray(data)) {
+      throw new Error("Sitemap JSON must be an array of entries");
+    }
+
+    this.entries = [];
+
     for (const item of data) {
       const urlTemplate = item.url;
       const method = (item.method || "").toUpperCase();
-      const tags = item.tags;
-      const semanticAction = item.semantic_action || "";
-      const body = item.body || {};
-      if (!urlTemplate || !method || !Array.isArray(tags)) {
-        throw new Error(`Invalid entry: ${JSON.stringify(item)}`);
+      const semanticAction = item.semantic_action;
+
+      if (!urlTemplate || !method) {
+        throw new Error(`Invalid sitemap entry (missing url/method): ${JSON.stringify(item)}`);
       }
+      if (!semanticAction || typeof semanticAction !== "string") {
+        throw new Error(`Invalid sitemap entry (missing semantic_action): ${JSON.stringify(item)}`);
+      }
+
       const regex = this._compileTemplate(urlTemplate);
-      this.entries.push(new SitemapEntry(method, urlTemplate, regex, tags, semanticAction, body));
+      const body = item.body || {};
+      const tags = Array.isArray(item.tags) ? item.tags : [];
+
+      this.entries.push(new SitemapEntry(method, urlTemplate, regex, semanticAction, body, tags));
     }
   }
 
-  getTags(actionMethod, actionUrl, actionBody = {}) {
-    const method = actionMethod.toUpperCase();
+  // Core helper: resolve semanticAction (and tags for debug) for an action.
+  getMatchInfo(actionMethod, actionUrl, actionBody = {}) {
+    const method = String(actionMethod || "").toUpperCase();
+
     for (const entry of this.entries) {
       if (entry.match(method, actionUrl, actionBody)) {
-        return entry.tags;
+        return { semanticAction: entry.semanticAction, tags: entry.tags || [] };
       }
     }
-    return [];
+    return { semanticAction: null, tags: [] };
+  }
+
+  getTags(actionMethod, actionUrl, actionBody = {}) {
+    return this.getMatchInfo(actionMethod, actionUrl, actionBody).tags;
   }
 }
 
@@ -282,9 +256,6 @@ class Sitemap {
 export {
   Endpoint,
   Action,
-  MatchBlock,
-  ExceptionBlock,
-  Rule,
   Policy,
   InvalidPolicyError,
   PolicyDenied,

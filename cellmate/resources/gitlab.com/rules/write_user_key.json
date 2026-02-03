@@ -1,11 +1,6 @@
 {
     "effect": "allow",
-    "match": {
-        "tags": [
-            "user",
-            "key"
-        ]
-    },
+    "action": ["List all SSH keys", "Add an SSH key", "Delete an SSH key for a user"],
     "sensitive": true,
     "description": "Allow read/write access to user keys."
 }
