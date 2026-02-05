@@ -42,20 +42,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       const policy = result[domain].policy;
       const rules = policy.rules || [];
       if (rules.length > 0) {
-        let html = `<p>Active rules for <b>${domain}</b>:</p><ul id="rules-list">`;
+        let html = `<p>Active policies for <b>${domain}</b>:</p><ul id="rules-list">`;
         rules.forEach((rule, i) => {
           html += `<li>${rule.description || `Rule ${i + 1}`}</li>`;
         });
         html += `</ul>`;
         content.innerHTML = html;
       } else {
-        content.innerHTML = `<p>No rules found in policy for <b>${domain}</b>.</p>`;
+        content.innerHTML = `<p>No active policies for <b>${domain}</b>.</p>`;
       }
-      actionBtn.textContent = "Edit Policy";
+      actionBtn.textContent = "Edit Policies";
       actionBtn.hidden = false;
       actionBtn.onclick = () => (window.location.href = "edit.html");
     } else {
-      content.innerHTML = `<p>No policy found for domain <b>${domain}</b>.</p>`;
+      content.innerHTML = `<p>No policies / sitemap available for domain <b>${domain}</b>.</p>`;
       actionBtn.textContent = "Setup Policy";
       actionBtn.hidden = false;
       actionBtn.onclick = () => (window.location.href = "edit.html");

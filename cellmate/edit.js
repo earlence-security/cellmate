@@ -89,7 +89,7 @@ function renderRulesList(domain, rulesMap, preselectedSlugs = []) {
 
   const slugs = Object.keys(rulesMap).sort();
   if (slugs.length === 0) {
-    container.innerHTML = `<div class="muted">No rules available for <b>${domain}</b>.</div>`;
+    container.innerHTML = `<div class="muted">No policies available for <b>${domain}</b>.</div>`;
     return;
   }
 
@@ -223,7 +223,7 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
 
   // Suggested TRUE on top
   if (suggestedTrueSlugs.length > 0) {
-    addSeparator("LLM Suggested Rules");
+    addSeparator("LLM Suggested Policies");
     for (const slug of suggestedTrueSlugs) {
       const id = `rule_${slug}`;
       const row = document.createElement("div");
@@ -244,7 +244,7 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
   const remaining = allSlugs.filter(s => !suggestedTrueSlugs.includes(s));
 
   if (remaining.length > 0) {
-    addSeparator("Remaining Rules");
+    addSeparator("Remaining Policies");
     for (const slug of remaining) {
       const id = `rule_${slug}`;
       const row = document.createElement("div");
@@ -313,9 +313,9 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
   // If we're updating, preselect based on current policy; otherwise empty selection
   const preselected = inferSelectedSlugs(existingPolicy, rulesMap, storedSlugs);
   if (existingPolicy) {
-    setStatus(`Updating policy for <b>${domain}</b>. Toggle rules below and press Submit.`);
+    setStatus(`Updating policy for <b>${domain}</b>. Toggle on desired policies below and press Submit.`);
   } else {
-    setStatus(`Please select rules from below to add to your policy for <b>${domain}</b>.`);
+    setStatus(`Please select policies for <b>${domain}</b>.`);
   }
 
   // Initial render (plain list)

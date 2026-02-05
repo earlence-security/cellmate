@@ -132,18 +132,32 @@ export async function requestDomainSuggestions({ apiKey, userTask, maxDomains = 
     messages: [
       {
         role: "user",
-        content:
-          `Given the user's task: ${userTask}\n` +
-          `List up to ${maxDomains} relevant hostnames the browser would contact.\n` +
-          `Return a strict JSON array of hostnames only.\n\n` +
-          `Guidelines:\n` +
-          `- Prefer subdomains when the product/service is tied to one (e.g., "mail.google.com" for Gmail, not "google.com").\n` +
-          `- If an app uses multiple specific subdomains, list them separately.\n` +
-          `- Do not include unrelated sibling subdomains (e.g., exclude "calendar.google.com" for a Gmail-only task).\n` +
-          `- Do not include schemes, ports, paths, or wildcards.\n\n` +
-          `Examples of correct outputs:\n` +
-          `["mail.google.com", "apis.google.com"]\n` +
-          `["gitlab.com", "gitlab.net", "gl-product-analytics.com"]`
+        content:`
+Given the user's task: ${userTask}\n
+List up relevant domain that the task indicates explicitly that the browser would to visit to perform the task.\n\n
+Return a strict JSON array of domain names only.\n\n
+Guidelines:\n
+- **Only** select domains **explicitly** mentioned in the provided task where the task needed to be performed on and **DO NOT** make inference beyond that.\n
+- If No domains are **explicitly** mentioned, return an empty array, i.e. []\n
+- DO NOT include domain names if it only appears as a descriptor of a subject (i.e. Dell laptop)
+- Only include hostname found in the list in your output JSON array.\n
+- Prefer subdomains when the product/service is tied to one (e.g., "mail.google.com" for Gmail, not "google.com").\n
+- If an app uses multiple specific subdomains, list them separately.\n
+- Do not include unrelated sibling subdomains (e.g., exclude "calendar.google.com" for a Gmail-only task).\n
+- Do not include schemes, ports, paths, or wildcards.\n\n
+- Return **strictly** the required JSON array, and nothing else (including trailing spaces, symbols, keywords)\n\n
+Examples of correct outputs:\n
+["mail.google.com", "apis.google.com"]\n
+["amazon.com"]\n\n
+Example of correct prediction:\n
+task: "Search for 'birthday candles' on amazon and add the cheapest option to my shopping cart."
+prediction: ["amazon.com"]\n
+Reason: The task dictates to go to amazon to make the purchase, which the prediction is correct.
+Example of incorrect prediction:\n\n
+task: "Go to linkedin.com and send a connect request to Steve from Microsoft."
+prediction: ["linkedin.com", "microsoft.com"]\n
+Reason: The task requires to navigate to linkedin, which the prediction successfully includes, however, the term "Microsoft" mentioned in the task is strictly for filtering out a candidate Steve from linkedin and in nowhere in the task require the navigation to "microsoft.com", so predicting "microsoft.com" is incorrect.
+`
       }
     ]
   };
