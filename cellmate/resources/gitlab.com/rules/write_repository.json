@@ -1,5 +1,0 @@
-{
-    "effect": "allow",
-    "action": ["List repository tree", "Compare branches, tags or commits", "Get contributor list", "Get file from repository", "Get file blame from repository", "Create new file in repository", "Update existing file in repository", "Delete existing file in repository"],
-    "description": "Grants read-write access to repositories on private projects."
-}

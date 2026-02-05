@@ -1,5 +1,3 @@
-// import policy engine classes
-import { Policy, Sitemap, Action } from "./policyEngine.js";
 import { requestPolicySuggestions } from "./llmClient.js";
 
 const qs = sel => document.querySelector(sel);
@@ -129,35 +127,75 @@ function compilePolicy(template, rulesMap, selectedSlugs) {
 
 /**
  * Produce target_requests by evaluating the policy across all sitemap endpoints.
+ *
+ * Inputs/outputs unchanged:
+ *  - input: (policyObj, sitemapObj)
+ *  - output: [{ url, method, decision, (optional) body }]
  */
 function computeTargetRequests(policyObj, sitemapObj) {
-  const policy = Policy.fromDict(policyObj);
-  const sitemap = new Sitemap(sitemapObj);
+  // Defensive parsing / normalization
+  const rules = Array.isArray(policyObj?.rules) ? policyObj.rules : [];
+  const sitemapEntries = Array.isArray(sitemapObj) ? sitemapObj : (Array.isArray(sitemapObj?.entries) ? sitemapObj.entries : sitemapObj);
 
-  const targets = [];
-  for (const entry of sitemap.entries) {
-    // NOTE: if your sitemap uses {param} placeholders, consider the “templateToExampleUrl”
-    // trick or the “self-match” tweak discussed earlier to ensure tags resolve.
-    const action = Action.fromEndpoint({
-      url: entry.urlTemplate,
-      method: entry.method,
-      sitemap
-    });
+  if (!Array.isArray(sitemapEntries)) {
+    throw new Error("Invalid sitemapObj: expected an array of sitemap entries.");
+  }
 
-    const decision = policy.evaluate(action);
-    console.log("[DBG] entry:", entry.method, entry.urlTemplate,
-                "tags:", action.tags, "decision:", decision);
+  // Collect allowed semantic actions from allow-rules
+  const allowedActions = new Set();
+  for (const rule of rules) {
+    if (!rule || typeof rule !== "object") continue;
+    if (String(rule.effect || "").toLowerCase() !== "allow") continue;
 
-    // NEW RULE: include any endpoint that is NOT explicitly "allow"
-    if (decision !== "allow") {
-      if (Object.keys(entry.body).length === 0) {
-        targets.push({ url: entry.urlTemplate, method: entry.method, decision }); // decision ∈ {"deny","allow_public"}
-      }
-      else {
-        targets.push({ url: entry.urlTemplate, method: entry.method, decision, body: entry.body }); // decision ∈ {"deny","allow_public"}
+    const actions = rule.action;
+    if (!Array.isArray(actions)) continue;
+
+    for (const a of actions) {
+      if (typeof a === "string" && a.trim().length > 0) {
+        allowedActions.add(a);
       }
     }
   }
+
+  const targets = [];
+
+  for (const entry of sitemapEntries) {
+    if (!entry || typeof entry !== "object") continue;
+
+    const method = String(entry.method || "").toUpperCase();
+    const urlTemplate = entry.url;
+    const body = entry.body || {};
+    const semanticAction = entry.semantic_action;
+
+    if (!method || !urlTemplate) {
+      // Skip malformed sitemap entry (or you could throw)
+      continue;
+    }
+
+    // Decision: allow iff semantic_action is explicitly allowed by some selected rule.
+    const isAllowed = typeof semanticAction === "string" && allowedActions.has(semanticAction);
+    const decision = isAllowed ? "allow" : "deny";
+
+    console.log(
+      "[DBG] entry:",
+      method,
+      urlTemplate,
+      "semantic_action:",
+      semanticAction,
+      "decision:",
+      decision
+    );
+
+    // Include any endpoint that is NOT explicitly "allow"
+    if (decision !== "allow") {
+      if (body && typeof body === "object" && Object.keys(body).length > 0) {
+        targets.push({ url: urlTemplate, method, decision, body });
+      } else {
+        targets.push({ url: urlTemplate, method, decision });
+      }
+    }
+  }
+
   return targets;
 }
 
