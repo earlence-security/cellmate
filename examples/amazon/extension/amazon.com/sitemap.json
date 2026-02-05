@@ -1,0 +1,36 @@
+[
+    {
+        "semantic_action": "buy_now",
+        "description": "Buy an item now",
+        "url": "https://www.amazon.com/checkout/entry/buynow",
+        "method": "POST"
+    },
+    {
+        "semantic_action": "view_shopping_cart",
+        "description": "View shopping cart",
+        "url": "https://www.amazon.com/gp/cart/view.html*",
+        "method": "GET"
+    },
+    {
+        "semantic_action": "checkout_shopping_cart",
+        "description": "Checkout shopping cart",
+        "url": "https://www.amazon.com/checkout/entry/cart*",
+        "method": "GET"
+    },
+    {
+        "semantic_action": "place_order",
+        "description": "Place an order",
+        "url": "https://www.amazon.com/checkout/p/*/spc/place-order*",
+        "method": "POST",
+        "args": {
+            "total_amount": {
+                "type": "number",
+                "source": {
+                    "type": "dom",
+                    "url": "https://www.amazon.com/checkout/p/*",
+                    "selector": "#subtotals-marketplace-table li:nth-child(4) .order-summary-line-definition"
+                }
+            }
+        }
+    }
+]

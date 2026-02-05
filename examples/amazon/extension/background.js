@@ -19,6 +19,13 @@ const dec = new TextDecoder();
 // Example: snapshots.get(tabId)[url][selector] = { value: "...", ts: 1234567890 }
 const snapshots = new Map();
 
+async function fetchJson(extPath) {
+  const url = chrome.runtime.getURL(extPath);
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Fetch failed ${resp.status}: ${extPath}`);
+  return resp.json();
+}
+
 // -----------------------------------------------------------------------------
 // Helper: Construct function path from domain and function name
 // -----------------------------------------------------------------------------
@@ -246,57 +253,8 @@ function buildInputForFunction(policy, req_details, domain) {
 // Preload policies at startup (optional). Add any policies you want ready.
 // -----------------------------------------------------------------------------
 const domain = "amazon.com";
-const policy = {
-    "effect": "allow",
-    "action": "place_order",
-    "condition": {
-        "name": "amazon_allow_purchase_if_amount_leq",
-        "args": [
-            "total_amount"
-        ],
-        "parameters": {
-            "max_amount": 1
-        }
-    },
-    "description": "Allow purchase if total amount is less than or equal to $1"
-};
-
-const sitemap = [
-    {
-        "semantic_action": "buy_now",
-        "description": "Buy an item now",
-        "url": "https://www.amazon.com/checkout/entry/buynow",
-        "method": "POST",
-    },
-    {
-        "semantic_action": "view_shopping_cart",
-        "description": "View shopping cart",
-        "url": "https://www.amazon.com/gp/cart/view.html*",
-        "method": "GET",
-    },
-    {
-        "semantic_action": "checkout_shopping_cart",
-        "description": "Checkout shopping cart",
-        "url": "https://www.amazon.com/checkout/entry/cart*",
-        "method": "GET",
-    },
-    {
-        "semantic_action": "place_order",
-        "description": "Place an order",
-        "url": "https://www.amazon.com/checkout/p/*/spc/place-order*",
-        "method": "POST",
-        "args": {
-            "total_amount": {
-                "type": "number",
-                "source": {
-                    "type": "dom",
-                    "url": "https://www.amazon.com/checkout/p/*",
-                    "selector": "#subtotals-marketplace-table li:nth-child(4) .order-summary-line-definition"
-                }
-            }
-        }
-    }
-];
+const policy = await fetchJson(`${domain}/policy.json`);
+const sitemap = await fetchJson(`${domain}/sitemap.json`);
 
 // Preload policies at startup. Currently the first policy wasm will be loaded.
 // TODO: Iterate over all policies for each domain.
