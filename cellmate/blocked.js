@@ -2,9 +2,16 @@
 (function () {
   const params = new URLSearchParams(location.search);
   const reason  = params.get("reason") || "";     // e.g. "predicted_allowlist"
-  const dest    = params.get("dest")   || "";     // destination hostname
-  const current = params.get("current")|| "";     // current page hostname
   const active  = params.get("active") === "true";
+
+  // Under MV3, DNR's redirect action can only set static query params, so the
+  // destination and current page hostnames aren't passed in the URL. Recover
+  // the current page hostname from document.referrer (which still points at
+  // the originating page during a redirect chain).
+  let current = "";
+  try {
+    if (document.referrer) current = new URL(document.referrer).hostname;
+  } catch { /* ignore */ }
 
   const $ = (id) => document.getElementById(id);
   const whyEl      = $("why");
