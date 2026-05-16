@@ -152,7 +152,16 @@ function buildRules(state) {
   // -------- Allow tier (priority 100) --------
 
   if (predictedAllowlistActive) {
+    // When the untrusted-domain gate is also on, an allowlist entry must also
+    // have its own policy to satisfy gate 2 (matching the MV2 semantics where
+    // a request had to pass both gates). Without that, an allowlist host
+    // without a policy would pass gate 1 but be blocked by gate 2.
+    // Cross-domain whitelisting via the current page's policy is handled by
+    // the rules below and covers the remaining MV2 allow cases.
+    const gate2OnlyAllowsPolicyHosts = disallowUntrusted;
+    const policyDomainSet = new Set(policies.map(p => p.domain));
     for (const host of predictedAllowlist) {
+      if (gate2OnlyAllowsPolicyHosts && !policyDomainSet.has(host)) continue;
       rules.push({
         id: id(),
         priority: 100,

@@ -4,10 +4,8 @@
   "version": "1.0",
   "permissions": [
     "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess",
     "tabs",
-    "storage",
-    "webNavigation"
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"
