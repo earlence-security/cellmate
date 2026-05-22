@@ -1,7 +1,5 @@
 [
-    "read_project_issue.json", 
     "read_user_key.json",                    
-    "write_project_issue.json",  
     "write_user_key.json",
     "read_user_personal_access_token.json",
     "write_user_personal_access_token.json",
