@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Edit Policy</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    /* Page chrome */
+    body { margin: 0; background: #f9fafb; color: #111827; width: 320px; }
+    header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px; border-bottom: 1px solid #e5e7eb; background: #fff;
+    }
+    header h1 { font-size: 14px; margin: 0; flex: 1; }
+    #back-btn {
+      background: transparent; border: none; font-size: 14px; cursor: pointer; color: #2563eb;
+      padding: 6px 8px; border-radius: 6px;
+    }
+    main { padding: 12px; }
+    #status { font-size: 15px; margin-bottom: 10px; color: #374151; }
+    .muted { color: #6b7280; }
+
+    /* Rule list */
+    .rule-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+      padding: 10px 12px; margin-bottom: 8px;
+    }
+    .rule-name { font-size: 14px; color: #111827; }
+
+    /* iOS-style toggle */
+    .toggle {
+      position: relative; width: 44px; height: 24px; flex: none;
+    }
+    .toggle input { display: none; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background: #e5e7eb; border-radius: 9999px; transition: background 0.2s;
+    }
+    .slider::before {
+      content: ""; position: absolute; height: 20px; width: 20px; left: 2px; top: 2px;
+      background: #fff; border-radius: 9999px; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    input:checked + .slider { background: #34c759; }
+    input:checked + .slider::before { transform: translateX(20px); }
+
+    footer {
+      padding: 12px; border-top: 1px solid #e5e7eb; background: #fff;
+      display: flex; justify-content: flex-end;
+    }
+    #submit-btn[disabled] { opacity: .6; cursor: not-allowed; }
+
+    /* --- Suggest card & controls --- */
+    .card{
+      background:#fff;
+      border:2px solid #dbeafe;          /* thicker, blue-ish border */
+      border-left:6px solid #2563eb;     /* accent left rail */
+      border-radius:12px;
+      padding:12px;
+      box-shadow:0 6px 16px rgba(0,0,0,.06);
+      display:flex; flex-direction:column; gap:8px;
+      margin-bottom:12px;
+    }
+    .card-title{ font-size:14px; font-weight:600; color:#0f172a; }
+    .hint{ font-size:13px; color:#6b7280; }
+    textarea{
+      width:90%; min-height:60px; resize:vertical;
+      padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px;
+      background:#fff; color:#314674;
+    }
+    .btn{
+      background:#2563eb; color:#fff; border:none; border-radius:8px; padding:8px 10px; font-size:13px; cursor:pointer;
+    }
+    .btn:hover{ background:#1d4ed8; }
+    .row-right{ display:flex; justify-content:flex-end; }
+
+    /* separator line with centered text */
+    .separator {
+      display:flex; align-items:center; gap:8px;
+      color:#6b7280; font-size:12px; margin:10px 0;
+    }
+    .separator::before, .separator::after {
+      content:""; flex:1; height:1px; background:#e5e7eb;
+    }
+
+  </style>
+  <!-- Load as a module so we can import the policy engine -->
+  <script type="module" src="edit.js"></script>
+</head>
+<body>
+  <header>
+    <button id="back-btn" aria-label="Back">← Back</button>
+    <h1>Edit Policy</h1>
+  </header>
+  <main>
+    <div id="status" class="muted">Loading…</div>
+    <div id="rules"></div>
+  </main>
+  <footer>
+    <button id="submit-btn" disabled>Submit</button>
+  </footer>
+</body>
+</html>

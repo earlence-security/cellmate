@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Policy Manager</title>
+  <link rel="stylesheet" href="popup.css">
+  <script src="popup.js" defer></script>
+</head>
+<body>
+  <div id="banner" style="display:none;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:8px 10px;margin:8px;border-radius:8px;position:relative;">
+    <span id="banner-text"></span>
+    <button id="banner-close" style="position:absolute;right:8px;top:6px;background:transparent;border:none;font-size:16px;cursor:pointer;">×</button>
+  </div>
+
+  <div id="container">
+    <h1 id="title">Policy Manager</h1>
+    <div id="content">
+      <!-- Dynamic content injected here -->
+    </div>
+    <div id="footer" style="display:flex; gap:8px; justify-content:space-between;">
+      <button id="settings-btn" class="ghost">Settings</button>
+      <button id="predict-btn" class="ghost">Policy Prediction</button>
+      <button id="action-btn" class="ghost" hidden></button>
+    </div>
+  </div>  
+</body>
+</html>
