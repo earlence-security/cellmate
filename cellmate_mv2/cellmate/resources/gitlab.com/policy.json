@@ -1,0 +1,25 @@
+{
+    "name": "gitlab_policy",
+    "description": "Policy template for GitLab",
+    "default": "allow_public",
+    "domains": [
+        "gitlab.com"
+    ],
+    "allowed_domains": [
+        "gitlab.com",
+        "gitlab.net",
+        "gl-product-analytics.com",
+        "gravatar.com",
+        "challenges.cloudflare.com"
+    ],
+    "allowed_requests": [
+        {
+            "url": "https://gitlab.com/users/sign_in"
+        },
+        {
+            "url": "https://gitlab.com/api/v4/usage_data/track_event",
+            "method": "POST"
+        }
+    ],
+    "rules": []
+}
