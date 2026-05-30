@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["ListIssues", "GetIssue"],
+    "description": "Allow read access to project issues."
+}

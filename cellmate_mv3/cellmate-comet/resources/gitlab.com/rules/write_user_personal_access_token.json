@@ -1,6 +1,7 @@
 {
     "effect": "allow",
-    "action": ["Create a personal access token for a user", "List personal access tokens for a user", "Delete a personal access token for a user", "Rotate a personal access token for a user"],
+    "action": ["CreatePersonalAccessToken", "DeletePersonalAccessToken", "RotatePersonalAccessToken"],
     "sensitive": true,
-    "description": "Allow read/write access to user personal access tokens."
+    "stateful": 1,
+    "description": "Allows management of personal access tokens, including creation, listing, deletion, and rotation. Granted only for time-limited operations."
 }

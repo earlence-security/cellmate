@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["CreateIssueNote", "UpdateIssueNote", "DeleteIssueNote"],
+    "sensitive": true,
+    "description": "Allow write access to issue notes."
+}

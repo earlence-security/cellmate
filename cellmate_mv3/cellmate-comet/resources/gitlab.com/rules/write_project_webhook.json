@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["AddWebhook", "EditWebhook", "DeleteWebhook"],
+    "sensitive": true,
+    "description": "Allow read/write access to project webhooks."
+}

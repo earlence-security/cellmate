@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["CreateFile", "UpdateFile", "DeleteFile"],
+    "sensitive": true,
+    "description": "Allow read/write access to repository content."
+}
