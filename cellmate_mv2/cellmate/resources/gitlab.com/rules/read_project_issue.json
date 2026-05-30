@@ -1,5 +1,5 @@
 {
     "effect": "allow",
-    "action": ["List project issues", "Single project issue"],
+    "action": ["ListIssues", "GetIssue"],
     "description": "Allow read access to project issues."
 }

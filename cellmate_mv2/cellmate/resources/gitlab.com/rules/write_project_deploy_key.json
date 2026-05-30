@@ -1,6 +1,6 @@
 {
     "effect": "allow",
-    "action": ["List deploy keys for project", "Add deploy key for a project", "Update deploy key", "Delete deploy key"],
+    "action": ["AddDeployKey", "UpdateDeployKey", "DeleteDeployKey"],
     "sensitive": true,
     "description": "Allow write access to project deploy keys."
 }

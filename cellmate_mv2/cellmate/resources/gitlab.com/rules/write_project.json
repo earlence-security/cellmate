@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["CreateProject", "EditProject", "ArchiveProject", "UnarchiveProject", "DeleteProject", "RestoreProject", "TransferProject"],
+    "sensitive": true,
+    "description": "Allow write access to projects."
+}

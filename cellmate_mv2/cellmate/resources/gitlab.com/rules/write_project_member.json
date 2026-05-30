@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["AddMember", "EditMember", "RemoveMember"],
+    "sensitive": true,
+    "description": "Allow write access to project and group members."
+}

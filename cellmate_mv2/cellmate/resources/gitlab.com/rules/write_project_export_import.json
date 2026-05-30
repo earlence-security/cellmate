@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["ScheduleExport", "ImportFile"],
+    "sensitive": true,
+    "description": "Allow export and import of projects."
+}

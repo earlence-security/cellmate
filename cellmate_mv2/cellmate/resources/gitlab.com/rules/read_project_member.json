@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["ListMembers"],
+    "sensitive": true,
+    "description": "Allow read access to project and group members."
+}

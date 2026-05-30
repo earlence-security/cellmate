@@ -1,13 +1,8 @@
-import { requestPolicySuggestions } from "./llmClient.js";
-
 const qs = sel => document.querySelector(sel);
 
 // --- Small MV2 wrappers so we can use await cleanly ---
 const tabsQuery = (q) => new Promise((res, rej) =>
   chrome.tabs.query(q, t => chrome.runtime.lastError ? rej(chrome.runtime.lastError) : res(t))
-);
-const storageGet = (keys) => new Promise((res, rej) =>
-  chrome.storage.local.get(keys, r => chrome.runtime.lastError ? rej(chrome.runtime.lastError) : res(r))
 );
 const storageSet = (obj) => new Promise((res, rej) =>
   chrome.storage.local.set(obj, () => chrome.runtime.lastError ? rej(chrome.runtime.lastError) : res())
@@ -80,6 +75,243 @@ function inferSelectedSlugs(currentPolicy, rulesMap, fallbackSlugs = []) {
   return slugs;
 }
 
+function getRuleParameters(rule) {
+  return rule?.condition?.parameters && typeof rule.condition.parameters === "object"
+    ? rule.condition.parameters
+    : {};
+}
+
+function hasRuleArguments(rule) {
+  return Object.keys(getRuleParameters(rule)).length > 0 || rule?.stateful === true;
+}
+
+function getLiteralOptions(type) {
+  const match = String(type || "").match(/^List\[Literal\[(.*)\]\]$/);
+  if (!match) return [];
+
+  const options = [];
+  const re = /"((?:\\.|[^"\\])*)"/g;
+  let cur;
+  while ((cur = re.exec(match[1])) !== null) {
+    options.push(cur[1].replace(/\\"/g, "\"").replace(/\\\\/g, "\\"));
+  }
+  return options;
+}
+
+function normalizeListDefault(value, multi) {
+  if (value === null || value === undefined) return [];
+  if (Array.isArray(value)) return value.map(String);
+  return multi ? [String(value)] : [String(value)];
+}
+
+function createNumericInput({ slug, paramName, defaultValue, required }) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.inputMode = "numeric";
+  input.className = "rule-param num-param";
+  input.dataset.ruleSlug = slug;
+  input.dataset.paramName = paramName;
+  input.dataset.required = String(required);
+  input.dataset.paramKind = "num";
+  input.setAttribute("aria-label", paramName);
+  if (defaultValue !== null && defaultValue !== undefined) {
+    input.placeholder = String(defaultValue);
+  }
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D/g, "");
+    updateSubmitState();
+  });
+  input.addEventListener("blur", updateSubmitState);
+  return input;
+}
+
+function createSingleSelect({ slug, paramName, options, defaultValue, required }) {
+  const select = document.createElement("select");
+  select.className = "rule-param single-param";
+  select.dataset.ruleSlug = slug;
+  select.dataset.paramName = paramName;
+  select.dataset.required = String(required);
+  select.dataset.paramKind = "single";
+  select.setAttribute("aria-label", paramName);
+
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = "";
+  select.appendChild(empty);
+
+  for (const optionValue of options) {
+    const option = document.createElement("option");
+    option.value = optionValue;
+    option.textContent = optionValue;
+    select.appendChild(option);
+  }
+
+  if (defaultValue !== null && defaultValue !== undefined) {
+    select.value = String(defaultValue);
+  }
+  select.addEventListener("change", updateSubmitState);
+  return select;
+}
+
+function createMultiSelect({ slug, paramName, options, defaultValues, required }) {
+  const root = document.createElement("span");
+  root.className = "multi-select";
+  root.dataset.ruleSlug = slug;
+  root.dataset.paramName = paramName;
+  root.dataset.required = String(required);
+  root.dataset.paramKind = "multi";
+
+  const selected = new Set(defaultValues);
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "multi-trigger";
+  trigger.setAttribute("aria-label", paramName);
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+
+  const label = document.createElement("span");
+  label.className = "multi-label";
+  trigger.appendChild(label);
+
+  const menu = document.createElement("div");
+  menu.className = "multi-menu";
+  menu.setAttribute("role", "listbox");
+  menu.setAttribute("aria-multiselectable", "true");
+
+  function sync() {
+    const values = Array.from(selected);
+    root.dataset.value = values.join("\u001f");
+    label.textContent = values[0] || "";
+    label.classList.toggle("empty", values.length === 0);
+    for (const option of menu.querySelectorAll(".multi-option")) {
+      const isSelected = selected.has(option.dataset.value);
+      option.classList.toggle("selected", isSelected);
+      option.setAttribute("aria-selected", String(isSelected));
+    }
+    updateSubmitState();
+  }
+
+  for (const optionValue of options) {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "multi-option";
+    option.dataset.value = optionValue;
+    option.setAttribute("role", "option");
+
+    const check = document.createElement("span");
+    check.className = "multi-check";
+    check.textContent = "✓";
+
+    const text = document.createElement("span");
+    text.textContent = optionValue;
+
+    option.append(check, text);
+    option.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (selected.has(optionValue)) selected.delete(optionValue);
+      else selected.add(optionValue);
+      sync();
+    });
+    menu.appendChild(option);
+  }
+
+  trigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const nextOpen = !root.classList.contains("open");
+    closeAllMultiSelects(root);
+    root.classList.toggle("open", nextOpen);
+    trigger.setAttribute("aria-expanded", String(nextOpen));
+  });
+
+  root.append(trigger, menu);
+  sync();
+  return root;
+}
+
+function closeAllMultiSelects(except = null) {
+  for (const root of document.querySelectorAll(".multi-select.open")) {
+    if (root === except) continue;
+    root.classList.remove("open");
+    root.querySelector(".multi-trigger")?.setAttribute("aria-expanded", "false");
+  }
+}
+
+document.addEventListener("click", () => closeAllMultiSelects());
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeAllMultiSelects();
+});
+
+function createParameterControl(slug, paramName, config) {
+  const required = config.default === null;
+  if (config.type === "num") {
+    return createNumericInput({
+      slug,
+      paramName,
+      defaultValue: config.default,
+      required
+    });
+  }
+
+  const options = getLiteralOptions(config.type);
+  const multi = config.mult_select === true;
+  if (multi) {
+    return createMultiSelect({
+      slug,
+      paramName,
+      options,
+      defaultValues: normalizeListDefault(config.default, true),
+      required
+    });
+  }
+
+  return createSingleSelect({
+    slug,
+    paramName,
+    options,
+    defaultValue: normalizeListDefault(config.default, false)[0],
+    required
+  });
+}
+
+function appendDescriptionWithControls(container, slug, rule) {
+  const params = getRuleParameters(rule);
+  const descriptionParts = [String(rule.description || "")];
+  if (rule?.stateful === true) {
+    descriptionParts.push(" Disabled after {STATEFUL_TIMES} operations.");
+  }
+
+  const fullDescription = descriptionParts.join("");
+  const placeholderRe = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = placeholderRe.exec(fullDescription)) !== null) {
+    if (match.index > lastIndex) {
+      container.appendChild(document.createTextNode(fullDescription.slice(lastIndex, match.index)));
+    }
+
+    const paramName = match[1];
+    if (paramName === "STATEFUL_TIMES" && rule?.stateful === true) {
+      container.appendChild(createNumericInput({
+        slug,
+        paramName,
+        defaultValue: 1,
+        required: false
+      }));
+    } else if (params[paramName]) {
+      container.appendChild(createParameterControl(slug, paramName, params[paramName]));
+    } else {
+      container.appendChild(document.createTextNode(match[0]));
+    }
+
+    lastIndex = placeholderRe.lastIndex;
+  }
+
+  if (lastIndex < fullDescription.length) {
+    container.appendChild(document.createTextNode(fullDescription.slice(lastIndex)));
+  }
+}
+
 /**
  * Render the rules list with toggles.
  */
@@ -95,17 +327,34 @@ function renderRulesList(domain, rulesMap, preselectedSlugs = []) {
 
   for (const slug of slugs) {
     const id = `rule_${slug}`;
+    const rule = rulesMap[slug];
     const row = document.createElement("div");
     row.className = "rule-row";
-    row.innerHTML = `
-      <div class="rule-name">${rulesMap[slug]["description"]}</div>
-      <label class="toggle">
-        <input type="checkbox" id="${id}" ${preselectedSlugs.includes(slug) ? "checked" : ""}>
-        <span class="slider"></span>
-      </label>
-    `;
+
+    const description = document.createElement("div");
+    description.className = "rule-name";
+    appendDescriptionWithControls(description, slug, rule);
+
+    const toggle = document.createElement("label");
+    toggle.className = "toggle";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = id;
+    checkbox.checked = preselectedSlugs.includes(slug);
+    checkbox.addEventListener("change", updateSubmitState);
+
+    const slider = document.createElement("span");
+    slider.className = "slider";
+
+    toggle.append(checkbox, slider);
+    row.append(description, toggle);
+    row.dataset.ruleSlug = slug;
+    row.dataset.hasArguments = String(hasRuleArguments(rule));
     container.appendChild(row);
   }
+
+  updateSubmitState();
 }
 
 /**
@@ -114,6 +363,50 @@ function renderRulesList(domain, rulesMap, preselectedSlugs = []) {
 function getSelectedSlugs() {
   const boxes = Array.from(document.querySelectorAll('.rule-row input[type="checkbox"]'));
   return boxes.filter(cb => cb.checked).map(cb => cb.id.replace(/^rule_/, ""));
+}
+
+function getRequiredArgumentErrors() {
+  const errors = [];
+  for (const row of document.querySelectorAll(".rule-row")) {
+    const checkbox = row.querySelector('.toggle input[type="checkbox"]');
+    const selected = checkbox?.checked;
+    row.classList.remove("invalid");
+    for (const control of row.querySelectorAll("[data-required='true']")) {
+      control.classList.remove("param-required");
+    }
+    if (!selected) continue;
+
+    for (const control of row.querySelectorAll("[data-required='true']")) {
+      let hasValue = false;
+      if (control.dataset.paramKind === "multi") {
+        hasValue = Boolean(control.dataset.value);
+      } else {
+        hasValue = Boolean((control.value || "").trim());
+      }
+
+      if (!hasValue) {
+        row.classList.add("invalid");
+        control.classList.add("param-required");
+        errors.push({
+          slug: row.dataset.ruleSlug,
+          paramName: control.dataset.paramName
+        });
+      }
+    }
+  }
+  return errors;
+}
+
+function updateSubmitState() {
+  const submitBtn = document.getElementById("submit-btn");
+  if (!submitBtn) return;
+  const errors = getRequiredArgumentErrors();
+  submitBtn.disabled = errors.length > 0;
+
+  const status = document.getElementById("status");
+  if (errors.length === 0 && status?.textContent.startsWith("Please fill in the required arguments")) {
+    status.classList.remove("error");
+  }
 }
 
 /**
@@ -202,65 +495,11 @@ function computeTargetRequests(policyObj, sitemapObj) {
 /**
  * Show an error or info message in #status.
  */
-function setStatus(html) {
-  qs("#status").innerHTML = html;
+function setStatus(html, { error = false } = {}) {
+  const status = qs("#status");
+  status.innerHTML = html;
+  status.classList.toggle("error", error);
 }
-
-/**
- * Render the rules list, with suggested rules on top separated by a line.
- */
-function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keepSelectedSlugs }) {
-  const container = document.getElementById("rules");
-  container.innerHTML = "";
-
-  // Build section DOM helper
-  function addSeparator(label) {
-    const sep = document.createElement("div");
-    sep.className = "separator";
-    sep.innerHTML = `<span>${label}</span>`;
-    container.appendChild(sep);
-  }
-
-  // Suggested TRUE on top
-  if (suggestedTrueSlugs.length > 0) {
-    addSeparator("LLM Suggested Policies");
-    for (const slug of suggestedTrueSlugs) {
-      const id = `rule_${slug}`;
-      const row = document.createElement("div");
-      row.className = "rule-row";
-      row.innerHTML = `
-        <div class="rule-name">${rulesMap[slug].description}</div>
-        <label class="toggle">
-          <input type="checkbox" id="${id}" ${keepSelectedSlugs.includes(slug) ? "checked" : ""}>
-          <span class="slider"></span>
-        </label>
-      `;
-      container.appendChild(row);
-    }
-  }
-
-  // Remaining (everything else)
-  const allSlugs = Object.keys(rulesMap).sort();
-  const remaining = allSlugs.filter(s => !suggestedTrueSlugs.includes(s));
-
-  if (remaining.length > 0) {
-    addSeparator("Remaining Policies");
-    for (const slug of remaining) {
-      const id = `rule_${slug}`;
-      const row = document.createElement("div");
-      row.className = "rule-row";
-      row.innerHTML = `
-        <div class="rule-name">${rulesMap[slug].description}</div>
-        <label class="toggle">
-          <input type="checkbox" id="${id}" ${keepSelectedSlugs.includes(slug) ? "checked" : ""}>
-          <span class="slider"></span>
-        </label>
-      `;
-      container.appendChild(row);
-    }
-  }
-}
-
 
 (async function main() {
   const backBtn = document.getElementById("back-btn");
@@ -268,10 +507,8 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
 
   const params = new URLSearchParams(location.search);
   const forcedDomain = params.get("domain");
-  const predictFlag = params.get("predict") === "1";
-  const taskFromURL = params.get("task") ? decodeURIComponent(params.get("task")) : null;
 
-  backBtn.addEventListener("click", () => (window.location.href = "popup.html"));
+  backBtn.addEventListener("click", () => window.close());
 
   // Pick domain: URL param > current tab
   const domain = forcedDomain || await getCurrentDomain();
@@ -286,22 +523,7 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
   // Attempt to load resources for the (possibly forced) domain
   let resources;
   try {
-    resources = await (async () => {
-      const base = `resources/${domain}`;
-      const [template, sitemap, rulesIndex] = await Promise.all([
-        fetchJson(`${base}/policy.json`),
-        fetchJson(`${base}/sitemap.json`),
-        fetchJson(`${base}/rules/index.json`)
-      ]);
-      const entries = await Promise.all(
-        rulesIndex.map(async fname => {
-          const obj = await fetchJson(`${base}/rules/${fname}`);
-          const slug = fname.replace(/\.json$/i, "");
-          return [slug, obj];
-        })
-      );
-      return { template, rulesIndex, rulesMap: Object.fromEntries(entries), sitemap };
-    })();
+    resources = await loadDomainResources(domain);
   } catch (e) {
     setStatus(`Policy setup is unavailable for <b>${domain}</b> as resources for this domain are not found.`);
     submitBtn.disabled = true;
@@ -320,41 +542,15 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
 
   // Initial render (plain list)
   renderRulesList(domain, rulesMap, preselected);
-  submitBtn.disabled = false;
-
-  // If predict=1 and task provided, auto-run policy suggestions and re-render grouped view
-  if (predictFlag && taskFromURL) {
-    try {
-      const { api_key } = await new Promise(res => chrome.storage.local.get("api_key", res));
-      if (api_key) {
-        const { suggestedRules } = await requestPolicySuggestions({
-          apiKey: api_key,
-          userTask: taskFromURL,
-          rulesMap,
-          domain
-        });
-
-        const suggestedTrue = Object.entries(suggestedRules)
-          .filter(([, v]) => v === true)
-          .map(([slug]) => slug);
-
-        const keepSelected = getSelectedSlugs(); // preserve prior checks
-        renderRulesWithSuggestions({
-          domain,
-          rulesMap,
-          suggestedTrueSlugs: suggestedTrue,
-          keepSelectedSlugs: keepSelected
-        });
-      } else {
-        console.warn("[edit] No API key found; skipping suggestion.");
-      }
-    } catch (err) {
-      console.error("[edit] Auto-suggestion failed:", err);
-    }
-  }
 
   // Submit button logic
   submitBtn.addEventListener("click", async () => {
+    const argumentErrors = getRequiredArgumentErrors();
+    if (argumentErrors.length > 0) {
+      setStatus("Please fill in the required arguments for selected policies.", { error: true });
+      return;
+    }
+
     submitBtn.disabled = true; // gray out to prevent double-submit
 
     try {
@@ -370,13 +566,12 @@ function renderRulesWithSuggestions({ domain, rulesMap, suggestedTrueSlugs, keep
 
       await storageSet({ [domain]: payload });
 
-      // Redirect back to popup with a small success flag & domain for banner
-      const q = new URLSearchParams({ updated: "1", domain }).toString();
-      window.location.href = `popup.html?${q}`;
+      setStatus(`Policy for <b>${domain}</b> successfully updated.`);
+      updateSubmitState();
     } catch (err) {
       console.error(err);
-      setStatus(`<span style="color:#b91c1c">Failed to update policy: ${String(err.message || err)}</span>`);
-      submitBtn.disabled = false; // re-enable to allow retry
+      setStatus(`Failed to update policy: ${String(err.message || err)}`, { error: true });
+      updateSubmitState(); // re-enable to allow retry if the form is valid
     }
   });
 })();

@@ -1,6 +1,7 @@
 {
     "effect": "allow",
-    "action": ["List all SSH keys", "Add an SSH key", "Delete an SSH key for a user"],
+    "action": ["AddSshKey", "DeleteSshKey"],
     "sensitive": true,
-    "description": "Allow read/write access to SSH user keys."
+    "stateful": 1,
+    "description": "Allow write access to SSH user keys."
 }

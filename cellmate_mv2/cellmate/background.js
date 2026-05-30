@@ -38,29 +38,6 @@ function isFromExtension(details) {
 
 // ====== DATA STRUCTS AND RELATED FUNCTIONS ==================================
 
-// ====== For determining the "current domain" =======
-
-// Map tabId -> top-level page hostname ("current domain" for that tab)
-const tabTopDomains = new Map();
-
-// Keep this map fresh on navigations / URL changes
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.url) {
-    const host = hostnameOf(changeInfo.url);
-    if (host) tabTopDomains.set(tabId, host);
-  }
-});
-
-// Cleanup on tab close
-chrome.tabs.onRemoved.addListener((tabId) => {
-  tabTopDomains.delete(tabId);
-});
-
-// ====== Predicted allowlist (domain restriction) =======
-// Evaluated FIRST, before untrusted & target matches.
-let predictedAllowlistActive = false;     // storage: predicted_domain_allowlist_active
-let predictedAllowlist = new Set();       // storage: predicted_domain_allowlist (exact hostnames)
-
 // ====== For storing target urls to apply enforcement per domain =======
 //
 // targetsByDomain = {
@@ -91,30 +68,6 @@ function removeDomainTargets(domain) {
   console.log("[bg] removeDomainTargets:", domain);
 }
 
-let disallowUntrusted = true; // factory default: block all requests to domains without a policy
-
-// ====== For storing policies per domain =======
-// (currently only used to figure out which domains are explicitly allowed via policy)
-const policiesByDomain = Object.create(null);
-
-function setPolicyForDomain(domain, policyObj) {
-  const allowed = new Set((policyObj?.allowed_domains || []).map(String));
-  policiesByDomain[domain] = { allowedDomains: allowed, hasPolicy: true };
-}
-
-function removePolicyForDomain(domain) {
-  delete policiesByDomain[domain];
-}
-
-// Helper: does the current page's policy allow the destination via allowed_domains?
-function currentPolicyAllowsDest(currentDomain, destHostname) {
-  if (!currentDomain) return false;
-  const rec = policiesByDomain[currentDomain];
-  if (!rec) return false;
-  const allowedSet = rec.allowedDomains || new Set();
-  return Array.from(allowedSet).some(ad => domainMatches(ad, destHostname));
-}
-
 // ====== Load resources from storage during startup ======
 
 function loadAllFromStorage() {
@@ -124,30 +77,13 @@ function loadAllFromStorage() {
       return;
     }
 
-    // untrusted-domain toggle
-    if (typeof all.disallow_untrusted_domains === "boolean") {
-      disallowUntrusted = all.disallow_untrusted_domains;
-    } else {
-      chrome.storage.local.set({ disallow_untrusted_domains: true });
-      disallowUntrusted = true;
-    }
-
-    // predicted allowlist gate
-    predictedAllowlistActive = !!all.predicted_domain_allowlist_active;
-    predictedAllowlist = new Set(Array.isArray(all.predicted_domain_allowlist) ? all.predicted_domain_allowlist.map(String) : []);
-
     // per-domain payloads { policy, target_requests, ... }
     for (const [key, value] of Object.entries(all || {})) {
       if (!value) continue;
-      if (value.policy) setPolicyForDomain(key, value.policy);
       if (Array.isArray(value.target_requests)) setDomainTargets(key, value.target_requests);
     }
 
-    console.log("[bg] settings:",
-      "disallow_untrusted_domains =", disallowUntrusted,
-      "| predicted_allowlist_active =", predictedAllowlistActive,
-      "| predicted_allowlist size =", predictedAllowlist.size
-    );
+    console.log("[bg] loaded target policies for", Object.keys(targetsByDomain).length, "domain(s)");
   });
 }
 
@@ -157,33 +93,12 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
 
   for (const [k, delta] of Object.entries(changes)) {
-    // toggles
-    if (k === "disallow_untrusted_domains") {
-      disallowUntrusted = !!delta.newValue;
-      console.log("[bg] changed: disallow_untrusted_domains =", disallowUntrusted);
-      continue;
-    }
-    if (k === "predicted_domain_allowlist_active") {
-      predictedAllowlistActive = !!delta.newValue;
-      console.log("[bg] changed: predicted_allowlist_active =", predictedAllowlistActive);
-      continue;
-    }
-    if (k === "predicted_domain_allowlist") {
-      const arr = Array.isArray(delta.newValue) ? delta.newValue.map(String) : [];
-      predictedAllowlist = new Set(arr);
-      console.log("[bg] changed: predicted_allowlist size =", predictedAllowlist.size);
-      continue;
-    }
-
     // per-domain entries
     const val = delta.newValue;
     if (val === undefined) {
-      // removed
       removeDomainTargets(k);
-      removePolicyForDomain(k);
       continue;
     }
-    if (val.policy) setPolicyForDomain(k, val.policy); else removePolicyForDomain(k);
     if (Array.isArray(val.target_requests)) setDomainTargets(k, val.target_requests); else removeDomainTargets(k);
   }
 });
@@ -281,10 +196,8 @@ function deepContains(pattern, target) {
 
 // ====== ENFORCEMENT ==========================================================
 //
-// Order:
-//   1) Predicted allowlist gate (if enabled)
-//   2) Untrusted-domain gate (if enabled)
-//   3) Target requests (deny / allow_public)
+// Selected setup policies compile to target_requests. Requests matching a saved
+// deny target are blocked; requests matching allow_public have Cookie stripped.
 //
 
 const pendingActionsByRequestId = new Map();
@@ -299,69 +212,6 @@ chrome.webRequest.onBeforeRequest.addListener(
     const destHostname = hostnameOf(details.url);
     const method = details.method;
 
-    // -------- [1] Predicted allowlist gate (STRICT exact hostname) --------
-    if (predictedAllowlistActive && details.url.startsWith("http")) {
-      const currentDomain = tabTopDomains.get(details.tabId) || null;
-
-      const inAllowlist = predictedAllowlist.has(destHostname); // strict: exact host match only
-      const isSameAsCurrent = currentDomain && currentDomain === destHostname;
-      // (optional guard to avoid self-bypass; keep if you added it earlier)
-      const allowedByCurrentPolicy = !isSameAsCurrent && currentPolicyAllowsDest(currentDomain, destHostname);
-
-      if (!inAllowlist && !allowedByCurrentPolicy) {
-        console.log("[bg] DENY (predicted allowlist):", method, details.url,
-                    "| current=", currentDomain || "<unknown>",
-                    "| reason=not in allowlist and not allowed by current policy");
-
-        // if this is a top-level navigation, redirect to our explainer page
-        if (details.type === "main_frame") {
-          const u = new URL(chrome.runtime.getURL("blocked.html"));
-          // keep params short and safe for URLs
-          u.searchParams.set("reason", "predicted_allowlist");
-          u.searchParams.set("dest", destHostname);
-          if (currentDomain) u.searchParams.set("current", currentDomain);
-          // optional: show whether allowlist is on
-          u.searchParams.set("active", String(predictedAllowlistActive));
-          return { redirectUrl: u.toString() };
-        }
-
-        // otherwise (subresources), just cancel
-        return { cancel: true };
-      }
-      // else pass to next gate
-    }
-
-    // update tabTopDomains on top-level navs
-    if (details.type === "main_frame" && details.tabId >= 0 && destHostname) {
-      tabTopDomains.set(details.tabId, destHostname);
-    }
-
-    // -------- [2] Untrusted-domain gate --------
-    if (disallowUntrusted && details.url.startsWith("http")) {
-      // Allow immediately if destination already has its own policy
-      const destHasPolicy = !!policiesByDomain[destHostname];
-      if (!destHasPolicy) {
-        const currentDomain = tabTopDomains.get(details.tabId);
-
-        // No current policy -> block
-        if (!currentDomain || !policiesByDomain[currentDomain]) {
-          console.log("[bg] DENY (untrusted: no current policy):", method, details.url,
-                      "current=", currentDomain || "<unknown>");
-          return { cancel: true };
-        }
-
-        // Current domain has a policy: only allow if dest ∈ allowed_domains
-        if (!currentPolicyAllowsDest(currentDomain, destHostname)) {
-          console.log("[bg] DENY (untrusted: dest not in current policy allowed_domains):",
-                      method, details.url, "current=", currentDomain, "dest=", destHostname);
-          return { cancel: true };
-        }
-        // else allowed to proceed
-      }
-      // if dest has its own policy, proceed
-    }
-
-    // -------- [3] Target matching (deny/allow_public) --------
     const bodyObj = parseRequestBody(details);
     const match = findTargetForRequest(destHostname, method, details.url, bodyObj);
     if (match) {
