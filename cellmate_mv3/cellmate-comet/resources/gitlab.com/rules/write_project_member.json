@@ -2,5 +2,5 @@
     "effect": "allow",
     "action": ["AddMember", "EditMember", "RemoveMember"],
     "sensitive": true,
-    "description": "Allow read/write access to project and group members."
+    "description": "Allow write access to project and group members."
 }

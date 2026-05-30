@@ -19,5 +19,6 @@
     "write_repository.json",
     "read_project_issue.json",
     "write_project_issue.json",
-    "write_project_issue_note.json"
+    "write_project_issue_note.json",
+    "create_personal_access_token_restricted_scopes.json"
 ]

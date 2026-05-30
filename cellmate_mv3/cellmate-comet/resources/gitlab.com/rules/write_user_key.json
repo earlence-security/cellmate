@@ -3,5 +3,5 @@
     "action": ["AddSshKey", "DeleteSshKey"],
     "sensitive": true,
     "stateful": 1,
-    "description": "Allow read/write access to SSH user keys."
+    "description": "Allow write access to SSH user keys."
 }

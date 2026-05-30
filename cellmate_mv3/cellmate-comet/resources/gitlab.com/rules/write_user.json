@@ -1,5 +1,5 @@
 {
     "effect": "allow",
     "action": ["ModifyUser"],
-    "description": "Allow read/write access to user profile under user settings."
+    "description": "Allow write access to user profile under user settings."
 }

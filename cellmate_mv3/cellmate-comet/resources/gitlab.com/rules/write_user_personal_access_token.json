@@ -3,5 +3,5 @@
     "action": ["CreatePersonalAccessToken", "DeletePersonalAccessToken", "RotatePersonalAccessToken"],
     "sensitive": true,
     "stateful": 1,
-    "description": "Allows management of personal access tokens, including creation, listing, deletion, and rotation. Granted only for time-limited operations."
+    "description": "Allow write access to personal access tokens, including creation, deletion, and rotation."
 }
