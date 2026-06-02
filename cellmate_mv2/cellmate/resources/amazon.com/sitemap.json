@@ -15,7 +15,18 @@
         "semantic_action": "checkout_shopping_cart",
         "description": "Checkout shopping cart",
         "url": "https://www.amazon.com/checkout/entry/cart*",
-        "method": "GET"
+        "method": "GET",
+        "resource_type": "main_frame",
+        "args": {
+            "cart_total_amount": {
+                "type": "number",
+                "source": {
+                    "type": "dom",
+                    "url": "https://www.amazon.com/*cart*",
+                    "selector": "#sc-subtotal-amount-buybox > span"
+                }
+            }
+        }
     },
     {
         "semantic_action": "place_order",

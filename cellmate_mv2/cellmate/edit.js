@@ -12,7 +12,7 @@ const storageSet = (obj) => new Promise((res, rej) =>
 // --- Helpers ---
 async function getCurrentDomain() {
   const [tab] = await tabsQuery({ active: true, currentWindow: true });
-  return new URL(tab.url).hostname;
+  return new URL(tab.url).hostname.replace(/^www\./, "");
 }
 
 async function fetchJson(extPath) {
@@ -104,28 +104,37 @@ function normalizeListDefault(value, multi) {
   return multi ? [String(value)] : [String(value)];
 }
 
-function createNumericInput({ slug, paramName, defaultValue, required }) {
+function createNumericInput({ slug, paramName, defaultValue, required, allowFloat = false, initialValue = null }) {
   const input = document.createElement("input");
   input.type = "text";
-  input.inputMode = "numeric";
+  input.inputMode = allowFloat ? "decimal" : "numeric";
   input.className = "rule-param num-param";
   input.dataset.ruleSlug = slug;
   input.dataset.paramName = paramName;
   input.dataset.required = String(required);
   input.dataset.paramKind = "num";
   input.setAttribute("aria-label", paramName);
-  if (defaultValue !== null && defaultValue !== undefined) {
+  if (initialValue !== null && initialValue !== undefined) {
+    input.value = String(initialValue);
+  } else if (defaultValue !== null && defaultValue !== undefined) {
     input.placeholder = String(defaultValue);
   }
-  input.addEventListener("input", () => {
-    input.value = input.value.replace(/\D/g, "");
-    updateSubmitState();
-  });
+  if (allowFloat) {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+      updateSubmitState();
+    });
+  } else {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "");
+      updateSubmitState();
+    });
+  }
   input.addEventListener("blur", updateSubmitState);
   return input;
 }
 
-function createSingleSelect({ slug, paramName, options, defaultValue, required }) {
+function createSingleSelect({ slug, paramName, options, defaultValue, required, initialValue = null }) {
   const select = document.createElement("select");
   select.className = "rule-param single-param";
   select.dataset.ruleSlug = slug;
@@ -146,14 +155,13 @@ function createSingleSelect({ slug, paramName, options, defaultValue, required }
     select.appendChild(option);
   }
 
-  if (defaultValue !== null && defaultValue !== undefined) {
-    select.value = String(defaultValue);
-  }
+  const valueToSet = initialValue !== null ? String(initialValue) : (defaultValue !== null && defaultValue !== undefined ? String(defaultValue) : null);
+  if (valueToSet !== null) select.value = valueToSet;
   select.addEventListener("change", updateSubmitState);
   return select;
 }
 
-function createMultiSelect({ slug, paramName, options, defaultValues, required }) {
+function createMultiSelect({ slug, paramName, options, defaultValues, required, initialValues = null }) {
   const root = document.createElement("span");
   root.className = "multi-select";
   root.dataset.ruleSlug = slug;
@@ -161,7 +169,7 @@ function createMultiSelect({ slug, paramName, options, defaultValues, required }
   root.dataset.required = String(required);
   root.dataset.paramKind = "multi";
 
-  const selected = new Set(defaultValues);
+  const selected = new Set(initialValues !== null ? initialValues.map(String) : defaultValues);
   const trigger = document.createElement("button");
   trigger.type = "button";
   trigger.className = "multi-trigger";
@@ -241,18 +249,22 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeAllMultiSelects();
 });
 
-function createParameterControl(slug, paramName, config) {
+function createParameterControl(slug, paramName, config, initialValue = null) {
   const required = config.default === null;
-  if (config.type === "num") {
+  const type = String(config.type || "");
+
+  if (type === "num" || type === "float" || type === "int" || type === "integer") {
     return createNumericInput({
       slug,
       paramName,
       defaultValue: config.default,
-      required
+      required,
+      allowFloat: type === "float" || type === "num",
+      initialValue,
     });
   }
 
-  const options = getLiteralOptions(config.type);
+  const options = getLiteralOptions(type);
   const multi = config.mult_select === true;
   if (multi) {
     return createMultiSelect({
@@ -260,7 +272,8 @@ function createParameterControl(slug, paramName, config) {
       paramName,
       options,
       defaultValues: normalizeListDefault(config.default, true),
-      required
+      required,
+      initialValues: initialValue !== null ? normalizeListDefault(initialValue, true) : null,
     });
   }
 
@@ -269,11 +282,12 @@ function createParameterControl(slug, paramName, config) {
     paramName,
     options,
     defaultValue: normalizeListDefault(config.default, false)[0],
-    required
+    required,
+    initialValue: initialValue !== null ? String(initialValue) : null,
   });
 }
 
-function appendDescriptionWithControls(container, slug, rule) {
+function appendDescriptionWithControls(container, slug, rule, storedParams = {}) {
   const params = getRuleParameters(rule);
   const descriptionParts = [String(rule.description || "")];
   if (rule?.stateful === true) {
@@ -299,7 +313,7 @@ function appendDescriptionWithControls(container, slug, rule) {
         required: false
       }));
     } else if (params[paramName]) {
-      container.appendChild(createParameterControl(slug, paramName, params[paramName]));
+      container.appendChild(createParameterControl(slug, paramName, params[paramName], storedParams[paramName] ?? null));
     } else {
       container.appendChild(document.createTextNode(match[0]));
     }
@@ -315,7 +329,7 @@ function appendDescriptionWithControls(container, slug, rule) {
 /**
  * Render the rules list with toggles.
  */
-function renderRulesList(domain, rulesMap, preselectedSlugs = []) {
+function renderRulesList(domain, rulesMap, preselectedSlugs = [], storedParams = {}) {
   const container = qs("#rules");
   container.innerHTML = "";
 
@@ -333,7 +347,7 @@ function renderRulesList(domain, rulesMap, preselectedSlugs = []) {
 
     const description = document.createElement("div");
     description.className = "rule-name";
-    appendDescriptionWithControls(description, slug, rule);
+    appendDescriptionWithControls(description, slug, rule, storedParams[slug] || {});
 
     const toggle = document.createElement("label");
     toggle.className = "toggle";
@@ -409,12 +423,68 @@ function updateSubmitState() {
   }
 }
 
+// Read current parameter values from all UI controls.
+// Returns { slug -> { paramName -> rawValue } }
+function collectParameterValues() {
+  const values = {};
+  for (const control of document.querySelectorAll("[data-rule-slug][data-param-name]")) {
+    const slug = control.dataset.ruleSlug;
+    const paramName = control.dataset.paramName;
+    if (!values[slug]) values[slug] = {};
+    if (control.dataset.paramKind === "multi") {
+      const raw = control.dataset.value || "";
+      values[slug][paramName] = raw ? raw.split("") : [];
+    } else {
+      values[slug][paramName] = (control.value || "").trim() || null;
+    }
+  }
+  return values;
+}
+
+// Convert a raw string value from a UI control to the correct JS type.
+function coerceParamValue(paramConfig, rawValue) {
+  if (rawValue === null || rawValue === undefined || rawValue === "") {
+    return paramConfig.default ?? null;
+  }
+  const type = String(paramConfig.type || "");
+  if (type === "float" || type === "num") return parseFloat(rawValue);
+  if (type === "int" || type === "integer") return parseInt(rawValue, 10);
+  if (paramConfig.mult_select) return Array.isArray(rawValue) ? rawValue : [rawValue].filter(Boolean);
+  return rawValue;
+}
+
+// Extract stored concrete parameter values from a previously saved policy.
+// Returns { slug -> { paramName -> value } } for condition rules.
+function extractStoredParamValues(storedPolicy, rulesMap) {
+  if (!storedPolicy?.rules) return {};
+  const result = {};
+  for (const rule of storedPolicy.rules) {
+    if (rule.effect !== "condition" || !rule.condition?.parameters) continue;
+    const conditionName = rule.condition.name;
+    const slug = Object.entries(rulesMap).find(([, r]) => r.condition?.name === conditionName)?.[0];
+    if (slug) result[slug] = rule.condition.parameters;
+  }
+  return result;
+}
+
 /**
  * Compile the final policy by inserting selected rules into the template.
  */
-function compilePolicy(template, rulesMap, selectedSlugs) {
+function compilePolicy(template, rulesMap, selectedSlugs, paramValues = {}) {
   const policy = JSON.parse(JSON.stringify(template)); // deep clone
-  policy.rules = selectedSlugs.map(slug => rulesMap[slug]);
+  policy.rules = selectedSlugs.map(slug => {
+    const rule = JSON.parse(JSON.stringify(rulesMap[slug]));
+    // For condition rules, replace the parameter schema with concrete user-supplied values.
+    if (rule.effect === "condition" && rule.condition?.parameters) {
+      const slugParams = paramValues[slug] || {};
+      const filledParams = {};
+      for (const [paramName, config] of Object.entries(rule.condition.parameters)) {
+        filledParams[paramName] = coerceParamValue(config, slugParams[paramName]);
+      }
+      rule.condition.parameters = filledParams;
+    }
+    return rule;
+  });
   return policy;
 }
 
@@ -426,7 +496,6 @@ function compilePolicy(template, rulesMap, selectedSlugs) {
  *  - output: [{ url, method, decision, (optional) body }]
  */
 function computeTargetRequests(policyObj, sitemapObj) {
-  // Defensive parsing / normalization
   const rules = Array.isArray(policyObj?.rules) ? policyObj.rules : [];
   const sitemapEntries = Array.isArray(sitemapObj) ? sitemapObj : (Array.isArray(sitemapObj?.entries) ? sitemapObj.entries : sitemapObj);
 
@@ -434,23 +503,23 @@ function computeTargetRequests(policyObj, sitemapObj) {
     throw new Error("Invalid sitemapObj: expected an array of sitemap entries.");
   }
 
-  // Collect allowed semantic actions from allow-rules
   const allowedActions = new Set();
+  const conditionRulesByAction = new Map();
+
   for (const rule of rules) {
     if (!rule || typeof rule !== "object") continue;
-    if (String(rule.effect || "").toLowerCase() !== "allow") continue;
+    const effect = String(rule.effect || "").toLowerCase();
+    const actions = Array.isArray(rule.action) ? rule.action : (rule.action ? [rule.action] : []);
 
-    const actions = rule.action;
-    if (!Array.isArray(actions)) continue;
-
-    for (const a of actions) {
-      if (typeof a === "string" && a.trim().length > 0) {
-        allowedActions.add(a);
-      }
+    if (effect === "allow") {
+      for (const a of actions) if (typeof a === "string" && a) allowedActions.add(a);
+    } else if (effect === "condition") {
+      for (const a of actions) if (typeof a === "string" && a) conditionRulesByAction.set(a, rule);
     }
   }
 
-  const targets = [];
+  const target_requests = [];
+  const condition_requests = [];
 
   for (const entry of sitemapEntries) {
     if (!entry || typeof entry !== "object") continue;
@@ -460,36 +529,34 @@ function computeTargetRequests(policyObj, sitemapObj) {
     const body = entry.body || {};
     const semanticAction = entry.semantic_action;
 
-    if (!method || !urlTemplate) {
-      // Skip malformed sitemap entry (or you could throw)
+    if (!method || !urlTemplate) continue;
+
+    if (typeof semanticAction === "string" && allowedActions.has(semanticAction)) continue;
+
+    if (typeof semanticAction === "string" && conditionRulesByAction.has(semanticAction)) {
+      const rule = conditionRulesByAction.get(semanticAction);
+      const cond = rule.condition;
+      if (!cond || typeof cond.name !== "string" || !cond.name ||
+          !Array.isArray(cond.args) || typeof cond.parameters !== "object" || cond.parameters === null) {
+        console.warn("[edit] Condition rule has invalid condition for action:", semanticAction, rule);
+        continue;
+      }
+      condition_requests.push({
+        url: urlTemplate,
+        method,
+        action: semanticAction,
+        condition: rule.condition, // { name, args, parameters: { max_amount: 1 } }
+      });
       continue;
     }
 
-    // Decision: allow iff semantic_action is explicitly allowed by some selected rule.
-    const isAllowed = typeof semanticAction === "string" && allowedActions.has(semanticAction);
-    const decision = isAllowed ? "allow" : "deny";
-
-    console.log(
-      "[DBG] entry:",
-      method,
-      urlTemplate,
-      "semantic_action:",
-      semanticAction,
-      "decision:",
-      decision
-    );
-
-    // Include any endpoint that is NOT explicitly "allow"
-    if (decision !== "allow") {
-      if (body && typeof body === "object" && Object.keys(body).length > 0) {
-        targets.push({ url: urlTemplate, method, decision, body });
-      } else {
-        targets.push({ url: urlTemplate, method, decision });
-      }
-    }
+    // Default: deny
+    const target = { url: urlTemplate, method, decision: "deny" };
+    if (body && typeof body === "object" && Object.keys(body).length > 0) target.body = body;
+    target_requests.push(target);
   }
 
-  return targets;
+  return { target_requests, condition_requests };
 }
 
 /**
@@ -540,8 +607,11 @@ function setStatus(html, { error = false } = {}) {
     setStatus(`Please select policies for <b>${domain}</b>.`);
   }
 
+  // Restore stored parameter values for condition rules (if editing an existing policy)
+  const storedParamValues = extractStoredParamValues(existingPolicy, rulesMap);
+
   // Initial render (plain list)
-  renderRulesList(domain, rulesMap, preselected);
+  renderRulesList(domain, rulesMap, preselected, storedParamValues);
 
   // Submit button logic
   submitBtn.addEventListener("click", async () => {
@@ -555,13 +625,16 @@ function setStatus(html, { error = false } = {}) {
 
     try {
       const selected = getSelectedSlugs();
-      const compiledPolicy = compilePolicy(template, rulesMap, selected);
-      const targetRequests = computeTargetRequests(compiledPolicy, sitemap);
+      const paramValues = collectParameterValues();
+      const compiledPolicy = compilePolicy(template, rulesMap, selected, paramValues);
+      const { target_requests, condition_requests } = computeTargetRequests(compiledPolicy, sitemap);
 
       const payload = {
         policy: compiledPolicy,
-        selected_rule_slugs: selected,  // helpful for future edit preselects
-        target_requests: targetRequests
+        selected_rule_slugs: selected,
+        target_requests,
+        condition_requests,
+        sitemap,
       };
 
       await storageSet({ [domain]: payload });

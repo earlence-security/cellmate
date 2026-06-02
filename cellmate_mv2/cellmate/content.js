@@ -8,7 +8,7 @@
 // -----------------------------------------------------------------------------
 
 console.log("[PolicyRunner] Content script loaded");
-const latestValues = new Map();   // selector -> latest DOM value
+const latestValues = new Map(); // urlPattern -> Map<selector, value>
 const activeObservers = new Map(); // url_pattern -> selector -> MutationObserver
 
 // -----------------------------------------------------------------------------
@@ -48,18 +48,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const currentUrl = window.location.href;
 
     for (const entry of message.config) {
-      const { url_matching, selector } = entry;
+      const { url_pattern, selector } = entry;
       console.log(`[PolicyRunner] Processing config entry`, entry);
 
       // Skip if not matching current page
-      if (!matchesUrl(currentUrl, url_matching)) continue;
-      console.log(`[PolicyRunner] URL ${currentUrl} matches pattern ${url_matching}`);
+      if (!matchesUrl(currentUrl, url_pattern)) continue;
+      console.log(
+        `[PolicyRunner] URL ${currentUrl} matches pattern ${url_pattern}`
+      );
 
       // Skip duplicate observers
-      if (getObserver(url_matching, selector)) continue;
-      console.log(`[PolicyRunner] Setting up observer for selector ${selector} on URL pattern ${url_matching}`);
+      if (getObserver(url_pattern, selector)) continue;
+      console.log(
+        `[PolicyRunner] Setting up observer for selector ${selector} on URL pattern ${url_pattern}`
+      );
 
-      watchElement(selector, url_matching);
+      watchElement(selector, url_pattern);
     }
 
     sendResponse({ status: "ok" });
@@ -72,22 +76,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // -----------------------------------------------------------------------------
 function watchElement(selector, urlPattern = "*") {
   // Skip if current URL doesn’t match pattern
-  console.debug(`[PolicyRunner] Setting up watch for selector: ${selector} on URL pattern: ${urlPattern}`);
+  console.debug(
+    `[PolicyRunner] Setting up watch for selector: ${selector} on URL pattern: ${urlPattern}`
+  );
   const currentUrl = window.location.href;
   if (!matchesUrl(currentUrl, urlPattern)) {
-    console.debug(`[PolicyRunner] Skipping ${selector} — URL ${currentUrl} not matching ${urlPattern}`);
+    console.debug(
+      `[PolicyRunner] Skipping ${selector} — URL ${currentUrl} not matching ${urlPattern}`
+    );
     return;
   }
 
   function startObserver(target) {
-    const observer = new MutationObserver(() => {
-      const value = target.textContent?.trim() ?? "";
-      latestValues.set(selector, value);
-      sendSnapshot("dom_change", urlPattern);
-      console.debug(`[PolicyRunner] Detected change in ${selector}: ${value}`);
+    if (!latestValues.has(urlPattern)) latestValues.set(urlPattern, new Map());
+    const patternValues = latestValues.get(urlPattern);
+
+    const observer = new MutationObserver((mutations) => {
+      const currentValue =
+        document.querySelector(selector)?.textContent?.trim() ?? "";
+      if (currentValue !== patternValues.get(selector)) {
+        patternValues.set(selector, currentValue);
+        sendSnapshot("dom_change", urlPattern);
+        console.debug(
+          `[PolicyRunner] Detected change in ${selector}: ${currentValue}`
+        );
+      }
     });
 
-    observer.observe(target, {
+    // Directly observe the document body to catch dynamic additions
+    observer.observe(document.body, {
       attributes: true,
       childList: true,
       characterData: true,
@@ -97,9 +114,12 @@ function watchElement(selector, urlPattern = "*") {
     registerObserver(urlPattern, selector, observer);
 
     // Initialize immediately with current value
-    latestValues.set(selector, target.textContent?.trim() ?? "");
+    const initial = document.querySelector(selector)?.textContent?.trim() ?? "";
+    patternValues.set(selector, initial);
     sendSnapshot("dom_init", urlPattern);
-    console.debug(`[PolicyRunner] Now observing selector: ${selector}, initial value: ${latestValues.get(selector)}`);
+    console.debug(
+      `[PolicyRunner] Now observing selector: ${selector}, initial value: ${patternValues.get(selector)}`
+    );
   }
 
   const el = document.querySelector(selector);
@@ -115,11 +135,13 @@ function watchElement(selector, urlPattern = "*") {
       }
     });
     bodyObserver.observe(document.body, { childList: true, subtree: true });
-    
+
     // Disconnect after 10s if element never appears
     const timeout = setTimeout(() => {
       bodyObserver.disconnect();
-      console.debug(`[PolicyRunner] Timeout: stopped watching for selector ${selector}`);
+      console.debug(
+        `[PolicyRunner] Timeout: stopped watching for selector ${selector}`
+      );
     }, 10000);
   }
 }
@@ -128,9 +150,10 @@ function watchElement(selector, urlPattern = "*") {
 // URL pattern matching helper. Supports "*" wildcard.
 // -----------------------------------------------------------------------------
 function matchesUrl(url, pattern) {
+  if (typeof url !== "string" || typeof pattern !== "string") return false;
   if (!pattern || pattern === "*") return true;
   const escaped = pattern
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/[.+^${}()|[\]\\\/]/g, "\\$&")
     .replace(/\*/g, ".*");
   const regex = new RegExp(`^${escaped}$`);
   return regex.test(url);
@@ -140,8 +163,9 @@ function matchesUrl(url, pattern) {
 // Send current snapshot of all monitored elements to background
 // -----------------------------------------------------------------------------
 function sendSnapshot(reason, urlPattern = "*") {
-  if (latestValues.size === 0) return;
-  const snapshot = Object.fromEntries(latestValues.entries());
+  const patternValues = latestValues.get(urlPattern);
+  if (!patternValues || patternValues.size === 0) return;
+  const snapshot = Object.fromEntries(patternValues.entries());
   chrome.runtime.sendMessage({
     type: "DOM_SNAPSHOT",
     domain: window.location.hostname,
@@ -151,30 +175,3 @@ function sendSnapshot(reason, urlPattern = "*") {
   console.debug(`[PolicyRunner] Sent DOM snapshot (${reason})`, snapshot);
 }
 
-// -----------------------------------------------------------------------------
-// Detect user actions that likely trigger POST requests
-// -----------------------------------------------------------------------------
-// document.addEventListener("submit", () => sendSnapshot("form_submit"), true);
-
-// document.addEventListener(
-//   "click",
-//   e => {
-//     const el = e.target.closest("button, input[type=submit]");
-//     if (el) sendSnapshot("button_click");
-//   },
-//   true
-// );
-
-// -----------------------------------------------------------------------------
-// Optional: Intercept fetch POST requests
-// -----------------------------------------------------------------------------
-/*
-const originalFetch = window.fetch;
-window.fetch = async (...args) => {
-  const response = await originalFetch(...args);
-  if (args[1]?.method?.toUpperCase() === "POST") {
-    sendSnapshot("fetch_post");
-  }
-  return response;
-};
-*/

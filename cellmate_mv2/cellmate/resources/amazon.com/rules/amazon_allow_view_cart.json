@@ -1,0 +1,5 @@
+{
+  "effect": "allow",
+  "action": ["view_shopping_cart"],
+  "description": "Allow viewing shopping cart"
+}

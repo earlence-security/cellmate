@@ -105,27 +105,29 @@ function getCachedSnapshot(tabId, url, selector, snapshots) {
 // Set up DOM monitoring for required arguments.
 // -----------------------------------------------------------------------------
 
-function getDomMonitorConfigForDomain(domain, argSpecMap) {
-  const domainArgSpec = getArgSpecForDomain(domain, argSpecMap);
-  const monitorConfig = [];
-  if (!domainArgSpec) return null;
-  for (const [semanticAction, args] of domainArgSpec) {
-    for (const [argName, spec] of args) {
-      if (spec.source.type === "dom") {
-        const url_pattern = spec.source.url;
-        const selector = spec.source.selector;
-        monitorConfig.push({
-          url_pattern: url_pattern,
-          selector: selector,
-        });
+// Derives DOM monitor config directly from targetsByDomain (defined in background.js).
+// targetsByDomain is in scope at call time since all background scripts share one global context.
+function getDomMonitorConfigForDomain(domain) {
+  const entries = targetsByDomain[domain] || [];
+  const seen = new Set();
+  const config = [];
+  for (const entry of entries) {
+    if (entry.decision !== "condition") continue;
+    for (const spec of Object.values(entry.condition?.resolvedArgs || {})) {
+      if (spec.source?.type === "dom") {
+        const key = `${spec.source.url}||${spec.source.selector}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          config.push({ url_pattern: spec.source.url, selector: spec.source.selector });
+        }
       }
     }
   }
-  return monitorConfig;
+  return config.length > 0 ? config : null;
 }
 
-function getDomMonitorConfigForPage(domain, url, argSpecMap) {
-  const pageConfig = getDomMonitorConfigForDomain(domain, argSpecMap);
+function getDomMonitorConfigForPage(domain, url) {
+  const pageConfig = getDomMonitorConfigForDomain(domain);
   if (!pageConfig) return null;
 
   // Filter config for the specific page URL
@@ -152,18 +154,14 @@ function matchesUrl(url, pattern) {
 // Enable dom monitoring on tab updates by sending DOM_MONITOR_SETUP messages
 // to content scripts.
 // -----------------------------------------------------------------------------
-function startDomMonitoring(argSpecMap, snapshots) {
+function startDomMonitoring(snapshots) {
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && tab.url) {
       const url = new URL(tab.url);
       const domain = normalizeDomain(url.hostname);
-      const config = getDomMonitorConfigForDomain(domain, argSpecMap);
+      const config = getDomMonitorConfigForPage(domain, tab.url);
       console.debug("[DomMonitor] Config:", config);
-      console.debug(
-        "[DomMonitor] hostname:",
-        url.hostname.replace(/^www\./, "")
-      );
-      if (config) {
+      if (config && config.length > 0) {
         console.log(
           `[DomMonitor] Sending monitor config to tab ${tabId}:`,
           config
