@@ -82,7 +82,17 @@ function getRuleParameters(rule) {
 }
 
 function hasRuleArguments(rule) {
-  return Object.keys(getRuleParameters(rule)).length > 0 || rule?.stateful === true;
+  return Object.keys(getRuleParameters(rule)).length > 0 || isStatefulRule(rule);
+}
+
+function isStatefulRule(rule) {
+  return rule?.stateful === true || (typeof rule?.stateful === "number" && rule.stateful > 0);
+}
+
+function getDefaultStatefulCount(rule) {
+  return typeof rule?.stateful === "number" && Number.isFinite(rule.stateful)
+    ? Math.max(0, Math.floor(rule.stateful))
+    : 1;
 }
 
 function getLiteralOptions(type) {
@@ -290,7 +300,7 @@ function createParameterControl(slug, paramName, config, initialValue = null) {
 function appendDescriptionWithControls(container, slug, rule, storedParams = {}) {
   const params = getRuleParameters(rule);
   const descriptionParts = [String(rule.description || "")];
-  if (rule?.stateful === true) {
+  if (isStatefulRule(rule)) {
     descriptionParts.push(" Disabled after {STATEFUL_TIMES} operations.");
   }
 
@@ -305,12 +315,13 @@ function appendDescriptionWithControls(container, slug, rule, storedParams = {})
     }
 
     const paramName = match[1];
-    if (paramName === "STATEFUL_TIMES" && rule?.stateful === true) {
+    if (paramName === "STATEFUL_TIMES" && isStatefulRule(rule)) {
       container.appendChild(createNumericInput({
         slug,
         paramName,
-        defaultValue: 1,
-        required: false
+        defaultValue: getDefaultStatefulCount(rule),
+        required: false,
+        initialValue: storedParams.STATEFUL_TIMES ?? null
       }));
     } else if (params[paramName]) {
       container.appendChild(createParameterControl(slug, paramName, params[paramName], storedParams[paramName] ?? null));
@@ -467,6 +478,19 @@ function extractStoredParamValues(storedPolicy, rulesMap) {
   return result;
 }
 
+function extractStoredStatefulValues(existingEntry) {
+  const result = {};
+  const stored = existingEntry?.stateful_policies || {};
+  for (const [slug, state] of Object.entries(stored)) {
+    if (!state || typeof state !== "object") continue;
+    const value = state.remaining ?? state.initial;
+    if (value !== null && value !== undefined) {
+      result[slug] = { STATEFUL_TIMES: value };
+    }
+  }
+  return result;
+}
+
 /**
  * Compile the final policy by inserting selected rules into the template.
  */
@@ -488,6 +512,15 @@ function compilePolicy(template, rulesMap, selectedSlugs, paramValues = {}) {
   return policy;
 }
 
+function getStatefulCount(rule, rawValue) {
+  if (rawValue === null || rawValue === undefined || rawValue === "") {
+    return getDefaultStatefulCount(rule);
+  }
+  const parsed = parseInt(rawValue, 10);
+  if (!Number.isFinite(parsed)) return getDefaultStatefulCount(rule);
+  return Math.max(0, parsed);
+}
+
 /**
  * Produce target_requests by evaluating the policy across all sitemap endpoints.
  *
@@ -495,7 +528,7 @@ function compilePolicy(template, rulesMap, selectedSlugs, paramValues = {}) {
  *  - input: (policyObj, sitemapObj)
  *  - output: [{ url, method, decision, (optional) body }]
  */
-function computeTargetRequests(policyObj, sitemapObj) {
+function computeTargetRequests(policyObj, sitemapObj, rulesMap = {}, selectedSlugs = [], paramValues = {}) {
   const rules = Array.isArray(policyObj?.rules) ? policyObj.rules : [];
   const sitemapEntries = Array.isArray(sitemapObj) ? sitemapObj : (Array.isArray(sitemapObj?.entries) ? sitemapObj.entries : sitemapObj);
 
@@ -505,6 +538,28 @@ function computeTargetRequests(policyObj, sitemapObj) {
 
   const allowedActions = new Set();
   const conditionRulesByAction = new Map();
+  const statefulRulesByAction = new Map();
+  const stateful_policies = {};
+
+  for (const slug of selectedSlugs) {
+    const rawRule = rulesMap[slug];
+    if (!isStatefulRule(rawRule)) continue;
+
+    const actions = Array.isArray(rawRule.action) ? rawRule.action : (rawRule.action ? [rawRule.action] : []);
+    const count = getStatefulCount(rawRule, paramValues[slug]?.STATEFUL_TIMES);
+    stateful_policies[slug] = {
+      slug,
+      initial: count,
+      remaining: count,
+      actions,
+      exhausted: count <= 0,
+    };
+    for (const action of actions) {
+      if (typeof action === "string" && action) {
+        statefulRulesByAction.set(action, slug);
+      }
+    }
+  }
 
   for (const rule of rules) {
     if (!rule || typeof rule !== "object") continue;
@@ -520,6 +575,7 @@ function computeTargetRequests(policyObj, sitemapObj) {
 
   const target_requests = [];
   const condition_requests = [];
+  const stateful_requests = [];
 
   for (const entry of sitemapEntries) {
     if (!entry || typeof entry !== "object") continue;
@@ -531,7 +587,22 @@ function computeTargetRequests(policyObj, sitemapObj) {
 
     if (!method || !urlTemplate) continue;
 
-    if (typeof semanticAction === "string" && allowedActions.has(semanticAction)) continue;
+    if (typeof semanticAction === "string" && allowedActions.has(semanticAction)) {
+      const statefulSlug = statefulRulesByAction.get(semanticAction);
+      if (statefulSlug) {
+        const target = {
+          url: urlTemplate,
+          method,
+          action: semanticAction,
+          rule_slug: statefulSlug,
+          decision: "stateful_allow",
+        };
+        if (entry.resource_type) target.resource_type = entry.resource_type;
+        if (body && typeof body === "object" && Object.keys(body).length > 0) target.body = body;
+        stateful_requests.push(target);
+      }
+      continue;
+    }
 
     if (typeof semanticAction === "string" && conditionRulesByAction.has(semanticAction)) {
       const rule = conditionRulesByAction.get(semanticAction);
@@ -546,6 +617,7 @@ function computeTargetRequests(policyObj, sitemapObj) {
         method,
         action: semanticAction,
         condition: rule.condition, // { name, args, parameters: { max_amount: 1 } }
+        rule_slug: statefulRulesByAction.get(semanticAction) || null,
       });
       continue;
     }
@@ -556,7 +628,7 @@ function computeTargetRequests(policyObj, sitemapObj) {
     target_requests.push(target);
   }
 
-  return { target_requests, condition_requests };
+  return { target_requests, condition_requests, stateful_requests, stateful_policies };
 }
 
 /**
@@ -608,7 +680,10 @@ function setStatus(html, { error = false } = {}) {
   }
 
   // Restore stored parameter values for condition rules (if editing an existing policy)
-  const storedParamValues = extractStoredParamValues(existingPolicy, rulesMap);
+  const storedParamValues = {
+    ...extractStoredParamValues(existingPolicy, rulesMap),
+    ...extractStoredStatefulValues(existingEntry),
+  };
 
   // Initial render (plain list)
   renderRulesList(domain, rulesMap, preselected, storedParamValues);
@@ -627,13 +702,16 @@ function setStatus(html, { error = false } = {}) {
       const selected = getSelectedSlugs();
       const paramValues = collectParameterValues();
       const compiledPolicy = compilePolicy(template, rulesMap, selected, paramValues);
-      const { target_requests, condition_requests } = computeTargetRequests(compiledPolicy, sitemap);
+      const { target_requests, condition_requests, stateful_requests, stateful_policies } =
+        computeTargetRequests(compiledPolicy, sitemap, rulesMap, selected, paramValues);
 
       const payload = {
         policy: compiledPolicy,
         selected_rule_slugs: selected,
         target_requests,
         condition_requests,
+        stateful_requests,
+        stateful_policies,
         sitemap,
       };
 

@@ -34,9 +34,8 @@ function isFromExtension(details) {
 
 // ====== TARGET STORE =========================================================
 //
-// targetsByDomain holds both static targets (deny / allow_public) and
-// condition-based targets (decision: "condition"). All share one matching path;
-// the decision field controls what happens after a match.
+// targetsByDomain holds static targets (deny / allow_public), condition-based
+// targets (decision: "condition"), and stateful targets (decision: "stateful_allow").
 //
 // Static entry:
 //   { method, rawUrl, regex, decision: "allow"|"deny"|"allow_public", bodyPattern }
@@ -44,7 +43,13 @@ function isFromExtension(details) {
 // Condition entry:
 //   { method, rawUrl, regex, decision: "condition", condition: { name, parameters, resolvedArgs } }
 //   resolvedArgs: pre-looked-up from sitemap at compile time — no argSpecMap needed at enforcement time
+//
+// Stateful entry:
+//   { method, rawUrl, regex, decision: "stateful_allow", rule_slug, bodyPattern }
 const targetsByDomain = Object.create(null);
+
+// In-memory remaining counts for stateful policies: { domain -> { slug -> { initial, remaining, exhausted } } }
+const statefulStateByDomain = Object.create(null);
 
 // Global caches for function execution and DOM snapshot storage.
 self.funcCache = self.funcCache || new Map();
@@ -57,6 +62,18 @@ function compileStaticTarget(t) {
     regex:         compileTemplateToRegex(t.url),
     decision:      t.decision,
     bodyPattern:   t.body || null,
+    resourceType: t.resource_type || null,
+  };
+}
+
+function compileStatefulTarget(t) {
+  return {
+    method:       (t.method || "").toUpperCase(),
+    rawUrl:       t.url,
+    regex:        compileTemplateToRegex(t.url),
+    decision:     "stateful_allow",
+    rule_slug:    t.rule_slug,
+    bodyPattern:  t.body || null,
     resourceType: t.resource_type || null,
   };
 }
@@ -81,6 +98,7 @@ function compileConditionTarget(c, sitemap) {
     rawUrl:        c.url,
     regex:         compileTemplateToRegex(c.url),
     decision:      "condition",
+    rule_slug:     c.rule_slug || null,
     resourceType: sitemapEntry?.resource_type || null,
     condition: {
       name:         c.condition.name,
@@ -92,13 +110,31 @@ function compileConditionTarget(c, sitemap) {
 
 // Build/replace one domain's compiled target list.
 // Returns a Promise that resolves when JS condition functions are preloaded.
-function setDomainTargets(domain, targetRequests = [], conditionRequests = [], sitemap = []) {
+function setDomainTargets(domain, targetRequests = [], conditionRequests = [], sitemap = [], statefulRequests = [], statefulPolicies = {}) {
   const compiledConditions = conditionRequests.map((c) => compileConditionTarget(c, sitemap)).filter(Boolean);
+  const compiledStateful = statefulRequests.map(compileStatefulTarget);
 
   targetsByDomain[domain] = [
     ...targetRequests.map(compileStaticTarget),
     ...compiledConditions,
+    ...compiledStateful,
   ];
+
+  // Sync in-memory stateful state from storage values.
+  if (!statefulStateByDomain[domain]) statefulStateByDomain[domain] = {};
+  const domainState = statefulStateByDomain[domain];
+  // Remove slugs no longer present in stateful_policies.
+  for (const slug of Object.keys(domainState)) {
+    if (!(slug in statefulPolicies)) delete domainState[slug];
+  }
+  // Add or update remaining slugs.
+  for (const [slug, policy] of Object.entries(statefulPolicies)) {
+    domainState[slug] = {
+      initial:   policy.initial ?? 1,
+      remaining: policy.remaining ?? policy.initial ?? 1,
+      exhausted: policy.exhausted ?? false,
+    };
+  }
 
   // Preload JS condition functions (async).
   const functionPaths = [...new Set(
@@ -116,6 +152,7 @@ function setDomainTargets(domain, targetRequests = [], conditionRequests = [], s
 
 function removeDomainTargets(domain) {
   delete targetsByDomain[domain];
+  delete statefulStateByDomain[domain];
   console.log("[bg] removeDomainTargets:", domain);
 }
 
@@ -159,7 +196,65 @@ function handleConditionRequest(details, domain, match, bodyObj) {
 
   const allowed = executeFunction(domain, { name, parameters }, input, self.funcCache);
   console.log(`[bg] Condition ${name}: ${allowed ? "ALLOW" : "DENY"}`);
+  if (allowed && match.rule_slug) {
+    return handleStatefulRequest(details, domain, match);
+  }
   return allowed ? {} : { cancel: true };
+}
+
+// ====== STATEFUL ENFORCEMENT =================================================
+
+function handleStatefulRequest(details, domain, match) {
+  const state = (statefulStateByDomain[domain] || {})[match.rule_slug];
+  if (!state || state.exhausted || state.remaining <= 0) {
+    console.log("[bg] DENY (stateful exhausted):", details.method, details.url);
+    return { cancel: true };
+  }
+
+  state.remaining -= 1;
+  if (state.remaining <= 0) {
+    state.remaining = 0;
+    state.exhausted = true;
+    console.log("[bg] Stateful policy exhausted:", match.rule_slug, "domain:", domain);
+  }
+  console.log("[bg] ALLOW (stateful, remaining:", state.remaining, "):", details.method, details.url);
+
+  persistStatefulState(domain);
+  return {};
+}
+
+// Persist current in-memory stateful state back to chrome.storage.local.
+// Reads the stored entry, overlays the latest in-memory remaining/exhausted values,
+// and removes exhausted slugs from selected_rule_slugs so the edit page reflects the change.
+function persistStatefulState(domain) {
+  chrome.storage.local.get(domain, (stored) => {
+    if (chrome.runtime.lastError) {
+      console.warn("[bg] persistStatefulState get error:", chrome.runtime.lastError);
+      return;
+    }
+    const entry = stored[domain];
+    if (!entry) return;
+
+    // Snapshot current in-memory state at the time of the write (handles rapid requests correctly).
+    const currentState = statefulStateByDomain[domain] || {};
+
+    const updatedPolicies = { ...(entry.stateful_policies || {}) };
+    for (const [slug, s] of Object.entries(currentState)) {
+      if (updatedPolicies[slug]) {
+        updatedPolicies[slug] = { ...updatedPolicies[slug], remaining: s.remaining, exhausted: s.exhausted };
+      }
+    }
+
+    const exhaustedSlugs = new Set(
+      Object.entries(currentState).filter(([, s]) => s.exhausted).map(([slug]) => slug)
+    );
+    const updatedSlugs = (entry.selected_rule_slugs || []).filter(slug => !exhaustedSlugs.has(slug));
+
+    chrome.storage.local.set(
+      { [domain]: { ...entry, stateful_policies: updatedPolicies, selected_rule_slugs: updatedSlugs } },
+      () => { if (chrome.runtime.lastError) console.warn("[bg] persistStatefulState set error:", chrome.runtime.lastError); }
+    );
+  });
 }
 
 // ====== STORAGE LOAD / SYNC ==================================================
@@ -175,7 +270,7 @@ function loadAllFromStorage() {
     for (const [key, value] of Object.entries(all || {})) {
       if (!value) continue;
       loads.push(
-        setDomainTargets(key, value.target_requests || [], value.condition_requests || [], value.sitemap || [])
+        setDomainTargets(key, value.target_requests || [], value.condition_requests || [], value.sitemap || [], value.stateful_requests || [], value.stateful_policies || {})
           .catch((err) => console.error("[bg] function preload failed:", key, err))
       );
     }
@@ -196,7 +291,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
       removeDomainTargets(k);
       continue;
     }
-    setDomainTargets(k, val.target_requests || [], val.condition_requests || [], val.sitemap || [])
+    setDomainTargets(k, val.target_requests || [], val.condition_requests || [], val.sitemap || [], val.stateful_requests || [], val.stateful_policies || {})
       .catch((err) => console.error("[bg] function preload failed:", k, err));
   }
 });
@@ -317,6 +412,9 @@ chrome.webRequest.onBeforeRequest.addListener(
       }
       if (match.decision === "condition") {
         return handleConditionRequest(details, domain, match, bodyObj);
+      }
+      if (match.decision === "stateful_allow") {
+        return handleStatefulRequest(details, domain, match);
       }
     }
 
