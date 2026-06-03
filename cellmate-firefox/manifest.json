@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Cellmate (Firefox)",
+  "version": "1.0",
+  "description": "Lightweight sandbox for browser-use agents. Firefox MV3 build — keeps the original blocking webRequest enforcement loop intact.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "cellmate@earlence.security",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ],
+        "optional": [
+          "authenticationInfo",
+          "personalCommunications",
+          "searchTerms",
+          "technicalAndInteraction",
+          "websiteActivity",
+          "websiteContent"
+        ]
+      }
+    }
+  },
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked.html", "blocked.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

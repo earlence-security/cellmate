@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["Create a personal access token for a user", "List personal access tokens for a user", "Delete a personal access token for a user", "Rotate a personal access token for a user"],
+    "sensitive": true,
+    "description": "Allow read/write access to user personal access tokens."
+}

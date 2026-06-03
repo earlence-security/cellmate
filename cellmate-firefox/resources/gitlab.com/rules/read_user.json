@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["Get the current user (as a regular user)"],
+    "description": "Allow read access to user profile under user settings."
+}
