@@ -1,0 +1,16 @@
+{
+  "effect": "condition",
+  "action": ["checkout_shopping_cart"],
+  "condition": {
+    "name": "amazon_allow_checkout_if_amount_leq",
+    "parameters": {
+      "max_amount": {
+        "type": "float",
+        "description": "The maximum cart total amount allowed.",
+        "default": null
+      }
+    },
+    "args": ["cart_total_amount"]
+  },
+  "description": "Allow checkout if cart total amount is less than or equal to {max_amount}."
+}

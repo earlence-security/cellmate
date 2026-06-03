@@ -1,0 +1,6 @@
+{
+  "name": "amazon_policy",
+  "description": "Policy for Amazon",
+  "domains": ["amazon.com"],
+  "rules": []
+}

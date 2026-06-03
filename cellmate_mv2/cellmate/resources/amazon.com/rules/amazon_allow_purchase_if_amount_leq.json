@@ -1,0 +1,16 @@
+{
+  "effect": "condition",
+  "action": ["place_order"],
+  "condition": {
+    "name": "amazon_allow_purchase_if_amount_leq",
+    "parameters": {
+      "max_amount": {
+        "type": "float",
+        "description": "The maximum purchase amount allowed.",
+        "default": null
+      }
+    },
+    "args": ["total_amount"]
+  },
+  "description": "Allow purchase if total amount is less than or equal to {max_amount}."
+}
