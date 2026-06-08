@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["ListRepositoryTree", "CompareBranches", "GetContributors", "GetFile", "GetFileBlame"],
+    "description": "Allow read access to repository content."
+}

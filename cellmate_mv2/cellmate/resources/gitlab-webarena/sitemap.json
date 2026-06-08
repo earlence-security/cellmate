@@ -1,0 +1,304 @@
+[
+    {
+        "semantic_action": "ListDeployKeys",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/deploy_keys",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "AddDeployKey",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/deploy_keys",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "UpdateDeployKey",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/deploy_keys/{key_id}",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "DeleteDeployKey",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/deploy_keys/{key_id}/disable",
+        "method": "PUT",
+        "body": {}
+    },
+    {
+        "semantic_action": "CreateDeployToken",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/settings/repository/deploy_token/create",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "DeleteDeployToken",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/deploy_tokens/{token_id}/revoke",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "ListMembers",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/project_members",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "AddMember",
+        "url": "http://3.12.226.110:8023/api/v4/projects/{project_id}/invitations",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "EditMember",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/project_members/{user_id}",
+        "method": "PUT",
+        "body": {}
+    },
+    {
+        "semantic_action": "RemoveMember",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/project_members/{user_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        }
+    },
+    {
+        "semantic_action": "ScheduleExport",
+        "url": "http://3.12.226.110:8023/{group}/{project}/export",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        }
+    },
+    {
+        "semantic_action": "ImportFile",
+        "url": "http://3.12.226.110:8023/import/gitlab_project",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "ListWebhooks",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/hooks",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "AddWebhook",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/hooks",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "EditWebhook",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/hooks/{hook_id}",
+        "method": "POST",
+        "body": {
+            "_method": "patch"
+        }
+    },
+    {
+        "semantic_action": "DeleteWebhook",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/hooks/{hook_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        }
+    },
+    {
+        "semantic_action": "GetProject",
+        "url": "http://3.12.226.110:8023/{group}/{project}",
+        "method": "GET",
+        "body": {},
+        "resource_type": "main_frame"
+    },
+    {
+        "semantic_action": "CreateProject",
+        "url": "http://3.12.226.110:8023/projects",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "EditProject",
+        "url": "http://3.12.226.110:8023/{group}/{project}",
+        "method": "POST",
+        "body": {
+            "_method": "patch"
+        }
+    },
+    {
+        "semantic_action": "ArchiveProject",
+        "url": "http://3.12.226.110:8023/{group}/{project}/archive",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        }
+    },
+    {
+        "semantic_action": "UnarchiveProject",
+        "url": "http://3.12.226.110:8023/{group}/{project}/unarchive",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        }
+    },
+    {
+        "semantic_action": "DeleteProject",
+        "url": "http://3.12.226.110:8023/{group}/{project}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        }
+    },
+    {
+        "semantic_action": "RestoreProject",
+        "url": "http://3.12.226.110:8023/{group}/*/restore",
+        "method": "POST",
+        "body": {
+            "_method": "post"
+        }
+    },
+    {
+        "semantic_action": "TransferProject",
+        "url": "http://3.12.226.110:8023/{group}/{project}/transfer",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        }
+    },
+    {
+        "semantic_action": "ListRepositoryTree",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/tree/{branch}",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "GetContributors",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/graphs/main",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "GetFile",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/blob/{branch}/{file_path}*",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "GetFileBlame",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/blame/{branch}/{file_path}*",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "CreateFile",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/create/{branch}/{dir_path}",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "UpdateFile",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/update/{branch}/{file_path}",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        }
+    },
+    {
+        "semantic_action": "DeleteFile",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/blob/{branch}/{file_path}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        }
+    },
+    {
+        "semantic_action": "ListSshKeys",
+        "url": "http://3.12.226.110:8023/-/profile/keys",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "AddSshKey",
+        "url": "http://3.12.226.110:8023/-/profile/keys",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "DeleteSshKey",
+        "url": "http://3.12.226.110:8023/-/profile/keys/{key_id}",
+        "method": "POST",
+        "body": {
+            "_method": "delete"
+        }
+    },
+    {
+        "semantic_action": "CreatePersonalAccessToken",
+        "url": "http://3.12.226.110:8023/-/profile/personal_access_tokens",
+        "method": "POST",
+        "body": {},
+        "args": {
+            "selectedScopes": {
+                "type": "list[string]",
+                "source": {
+                    "type": "request_body",
+                    "path": "personal_access_token[scopes][]"
+                }
+            }
+        }
+    },
+    {
+        "semantic_action": "ListPersonalAccessTokens",
+        "url": "http://3.12.226.110:8023/-/profile/personal_access_tokens",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "DeletePersonalAccessToken",
+        "url": "http://3.12.226.110:8023/-/profile/personal_access_tokens/{token_id}/revoke",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "ModifyUser",
+        "url": "http://3.12.226.110:8023/-/profile",
+        "method": "POST",
+        "body": {
+            "_method": "put"
+        }
+    },
+    {
+        "semantic_action": "ListIssues",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/issues",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "GetIssue",
+        "url": "http://3.12.226.110:8023/{group}/{project}/-/issues/{issue_id}",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "AddIssueEmojiReaction",
+        "url": "http://3.12.226.110:8023/api/v4/projects/{project_id}/issues/{issue_id}/award_emoji",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "CreateIssueNote",
+        "url": "http://3.12.226.110:8023/{group}/{project}/notes*",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "UpdateIssueNote",
+        "url": "http://3.12.226.110:8023/{group}/{project}/notes/{note_id}",
+        "method": "PUT",
+        "body": {}
+    },
+    {
+        "semantic_action": "DeleteIssueNote",
+        "url": "http://3.12.226.110:8023/{group}/{project}/notes/{note_id}",
+        "method": "DELETE",
+        "body": {}
+    }
+]

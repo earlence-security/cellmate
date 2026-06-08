@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["ListPersonalAccessTokens"],
+    "sensitive": true,
+    "description": "Allow read access to user personal access tokens."
+}

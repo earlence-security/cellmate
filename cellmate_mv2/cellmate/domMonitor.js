@@ -158,7 +158,7 @@ function startDomMonitoring(snapshots) {
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && tab.url) {
       const url = new URL(tab.url);
-      const domain = normalizeDomain(url.hostname);
+      const domain = findPolicyDomain(url);
       const config = getDomMonitorConfigForPage(domain, tab.url);
       console.debug("[DomMonitor] Config:", config);
       if (config && config.length > 0) {
@@ -175,13 +175,18 @@ function startDomMonitoring(snapshots) {
     }
   });
 
-  // TODO: Handle domain normalization if needed.
-  function normalizeDomain(hostname) {
-    return hostname
-      .replace(/^www\./, "")
-      .split(".")
-      .slice(-2)
-      .join(".");
+  // Find the policy domain key in targetsByDomain that matches this tab URL.
+  // Checks full origin first (for webarena IP:port origins), then hostname suffix
+  // (for real domains stored as bare hostnames like "amazon.com").
+  function findPolicyDomain(url) {
+    const origin = url.origin;
+    const hostname = url.hostname;
+    return Object.keys(targetsByDomain).find(key =>
+      key === origin ||
+      origin.endsWith("." + key) ||
+      key === hostname ||
+      hostname.endsWith("." + key)
+    ) ?? origin;
   }
 
   // -----------------------------------------------------------------------------

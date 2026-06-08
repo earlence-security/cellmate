@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["CreateIssue", "EditIssue", "DeleteIssue", "AddIssueEmojiReaction"],
+    "sensitive": true,
+    "description": "Allow write access to project issues."
+}

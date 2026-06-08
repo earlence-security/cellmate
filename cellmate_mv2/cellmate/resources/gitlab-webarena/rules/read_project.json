@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["GetProject", "ListAllProjects", "ListProjects"],
+    "description": "Allow read access to projects."
+}

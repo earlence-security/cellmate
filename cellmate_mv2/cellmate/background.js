@@ -14,7 +14,18 @@ function compileTemplateToRegex(template) {
 }
 
 function hostnameOf(url) {
-  try { return new URL(url).hostname; } catch { return ""; }
+  try { return new URL(url).origin; } catch { return ""; }
+}
+
+const WEBARENA_PORT_MAP = { "8023": "gitlab-webarena", "9999": "reddit-webarena" };
+
+function getResourceDomain(domain) {
+  try {
+    const port = new URL(domain).port;
+    return WEBARENA_PORT_MAP[port] || domain;
+  } catch {
+    return domain;
+  }
 }
 
 // Policy domain match: exact or subdomain (foo.example.com matches example.com)
@@ -137,10 +148,11 @@ function setDomainTargets(domain, targetRequests = [], conditionRequests = [], s
   }
 
   // Preload JS condition functions (async).
+  const resourceDomain = getResourceDomain(domain);
   const functionPaths = [...new Set(
     compiledConditions
       .filter((e) => e.condition?.name)
-      .map((e) => constructFunctionPath(domain, e.condition.name))
+      .map((e) => constructFunctionPath(resourceDomain, e.condition.name))
   )];
 
   console.log("[bg] setDomainTargets:", domain, targetsByDomain[domain].length, "entries");
@@ -189,12 +201,14 @@ function handleConditionRequest(details, domain, match, bodyObj) {
         return { cancel: true };
       }
       input[argName] = parsed;
+    } else if (typeof spec.type === "string" && spec.type.toLowerCase().startsWith("list[")) {
+      input[argName] = Array.isArray(raw) ? raw : [raw];
     } else {
       input[argName] = raw;
     }
   }
 
-  const allowed = executeFunction(domain, { name, parameters }, input, self.funcCache);
+  const allowed = executeFunction(getResourceDomain(domain), { name, parameters }, input, self.funcCache);
   console.log(`[bg] Condition ${name}: ${allowed ? "ALLOW" : "DENY"}`);
   if (allowed && match.rule_slug) {
     return handleStatefulRequest(details, domain, match);

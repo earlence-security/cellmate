@@ -1,0 +1,19 @@
+{
+  "effect": "condition",
+  "action": ["CreatePersonalAccessToken"],
+  "sensitive": true,
+  "stateful": true,
+  "condition": {
+    "name": "gitlab_restrict_personal_access_token_scopes",
+    "parameters": {
+      "allowedScopes": {
+        "type": "List[Literal[\"read_user\", \"write_user\", \"read_repository\", \"write_repository\", \"read_registry\", \"write_registry\", \"read_package_registry\", \"write_package_registry\", \"read_container_registry\", \"write_container_registry\"]]",
+        "mult_select": true,
+        "description": "The allowed scopes for the personal access token.",
+        "default": null
+      }
+    },
+    "args": [ "selectedScopes" ]
+  },
+  "description": "Allows creation of personal access tokens with the following scopes: {allowedScopes}."
+}

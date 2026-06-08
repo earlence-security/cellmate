@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["ListWebhooks"],
+    "sensitive": true,
+    "description": "Allow read access to project webhooks."
+}

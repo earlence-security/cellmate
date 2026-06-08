@@ -10,9 +10,22 @@ const storageSet = (obj) => new Promise((res, rej) =>
 
 
 // --- Helpers ---
+// Maps webarena port → bundled resource domain. IP can change between runs.
+const WEBARENA_PORT_MAP = { "8023": "gitlab-webarena", "9999": "reddit-webarena" };
+
+function getResourceDomain(origin) {
+  try {
+    const port = new URL(origin).port;
+    return WEBARENA_PORT_MAP[port] || origin;
+  } catch {
+    return origin;
+  }
+}
+
 async function getCurrentDomain() {
   const [tab] = await tabsQuery({ active: true, currentWindow: true });
-  return new URL(tab.url).hostname.replace(/^www\./, "");
+  if (!tab?.url) throw new Error("No active tab URL");
+  return new URL(tab.url).origin;
 }
 
 async function fetchJson(extPath) {
@@ -651,6 +664,9 @@ function setStatus(html, { error = false } = {}) {
 
   // Pick domain: URL param > current tab
   const domain = forcedDomain || await getCurrentDomain();
+  // For webarena instances, load bundled resources by port-mapped domain
+  // but keep the original origin as the storage key.
+  const resourceDomain = getResourceDomain(domain);
 
   // Load any existing entry for this domain
   const stored = await new Promise((res, rej) =>
@@ -662,7 +678,7 @@ function setStatus(html, { error = false } = {}) {
   // Attempt to load resources for the (possibly forced) domain
   let resources;
   try {
-    resources = await loadDomainResources(domain);
+    resources = await loadDomainResources(resourceDomain);
   } catch (e) {
     setStatus(`Policy setup is unavailable for <b>${domain}</b> as resources for this domain are not found.`);
     submitBtn.disabled = true;

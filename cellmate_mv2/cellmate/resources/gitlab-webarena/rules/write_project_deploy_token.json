@@ -1,0 +1,7 @@
+{
+    "effect": "allow",
+    "action": ["CreateDeployToken", "DeleteDeployToken"],
+    "sensitive": true,
+    "stateful": true,
+    "description": "Grants write access to project deploy tokens."
+}

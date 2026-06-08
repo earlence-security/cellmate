@@ -1,0 +1,6 @@
+{
+    "effect": "allow",
+    "action": ["ListSshKeys"],
+    "sensitive": true,
+    "description": "Allow read access to user SSH keys."
+}
