@@ -1,0 +1,39 @@
+[
+    {
+        "semantic_action": "ViewBlockList",
+        "description": "View the list of users that the current user has blocked.",
+        "url": "http://3.12.226.110:9999/user/{username}/block_list",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "ViewMessage",
+        "description": "View the list of messages for the current user.",
+        "url": "http://3.12.226.110:9999/messages",
+        "method": "GET",
+        "body": {}
+    },
+    {
+        "semantic_action": "DeletePost",
+        "description": "Delete a post with the given subreddit_id and post_id.",
+        "url": "http://3.12.226.110:9999/f/{subreddit_id}/{post_id}/-/delete",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "UpdateUserAccount",
+        "description": "Update the account information for the given user.",
+        "url": "http://3.12.226.110:9999/user/{username}/account",
+        "method": "POST",
+        "body": {}
+    },
+    {
+        "semantic_action": "ViewUserAccount",
+        "description": "View the account information for the given user.",
+        "url": "http://3.12.226.110:9999/user/{username}/account",
+        "method": "GET",
+        "body": {}
+    }
+
+
+]

@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["UpdateUserAccount"],
+    "description": "Allow updating the account information for the given user."
+}

@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["ViewMessage"],
+    "description": "Allow viewing the list of messages for the current user."
+}

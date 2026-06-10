@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["DeletePost"],
+    "description": "Allow deleting a post with the given subreddit_id and post_id."
+}

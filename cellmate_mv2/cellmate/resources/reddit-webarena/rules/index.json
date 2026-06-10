@@ -1,0 +1,7 @@
+[
+    "view_block_list.json",
+    "view_message.json",
+    "delete_post.json",
+    "update_user_account.json",
+    "view_user_account.json"
+]

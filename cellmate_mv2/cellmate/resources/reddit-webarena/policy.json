@@ -1,0 +1,13 @@
+{
+    "name": "reddit_policy",
+    "description": "Policy template for Reddit (WebArena)",
+    "default": "allow_public",
+    "domains": [
+        "reddit.com"
+    ],
+    "allowed_domains": [
+        "reddit.com"
+    ],
+    "allowed_requests": [],
+    "rules": []
+}

@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["ViewUserAccount"],
+    "description": "Allow viewing the account information for the given user."
+}

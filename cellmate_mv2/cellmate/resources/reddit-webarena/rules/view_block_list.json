@@ -1,0 +1,5 @@
+{
+    "effect": "allow",
+    "action": ["ViewBlockList"],
+    "description": "Allow viewing the list of users that the current user has blocked."
+}

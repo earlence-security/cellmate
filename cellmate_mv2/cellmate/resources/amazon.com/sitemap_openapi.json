@@ -1,0 +1,63 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Amazon.com Sitemap API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://www.amazon.com"
+        }
+    ],
+    "paths": {
+        "/gp/cart/view.html": {
+            "get": {
+                "operationId": "view_shopping_cart",
+                "summary": "View shopping cart"
+            }
+        },
+        "/checkout/entry/cart": {
+            "get": {
+                "operationId": "checkout_shopping_cart",
+                "summary": "Checkout shopping cart",
+                "x-resource-type": "main_frame",
+                "x-dom-args": {
+                    "cart_total_amount": {
+                        "type": "number",
+                        "source": {
+                            "type": "dom",
+                            "url": "https://www.amazon.com/*cart*",
+                            "selector": "#sc-subtotal-amount-buybox > span"
+                        }
+                    }
+                }
+            }
+        },
+        "/checkout/p/{order_id}/spc/place-order": {
+            "post": {
+                "operationId": "place_order",
+                "summary": "Place an order",
+                "parameters": [
+                    {
+                        "name": "order_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "x-dom-args": {
+                    "total_amount": {
+                        "type": "number",
+                        "source": {
+                            "type": "dom",
+                            "url": "https://www.amazon.com/checkout/p/*",
+                            "selector": "#subtotals-marketplace-table li:nth-child(4) .order-summary-line-definition"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
