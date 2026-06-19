@@ -12,11 +12,21 @@ const storageSet = (obj) => new Promise((res, rej) =>
 // --- Helpers ---
 // Maps webarena port → bundled resource domain. IP can change between runs.
 const WEBARENA_PORT_MAP = { "8023": "gitlab-webarena", "9999": "reddit-webarena" };
+const WEBARENA_DISPLAY_MAP = { "8023": "gitlab.com", "9999": "reddit.com" };
 
 function getResourceDomain(origin) {
   try {
     const port = new URL(origin).port;
     return WEBARENA_PORT_MAP[port] || origin;
+  } catch {
+    return origin;
+  }
+}
+
+function getDisplayDomain(origin) {
+  try {
+    const port = new URL(origin).port;
+    return WEBARENA_DISPLAY_MAP[port] || origin;
   } catch {
     return origin;
   }
@@ -680,7 +690,7 @@ function setStatus(html, { error = false } = {}) {
   try {
     resources = await loadDomainResources(resourceDomain);
   } catch (e) {
-    setStatus(`Policy setup is unavailable for <b>${domain}</b> as resources for this domain are not found.`);
+    setStatus(`Policy setup is unavailable for <b>${getDisplayDomain(domain)}</b> as resources for this domain are not found.`);
     submitBtn.disabled = true;
     return;
   }
@@ -690,9 +700,9 @@ function setStatus(html, { error = false } = {}) {
   // If we're updating, preselect based on current policy; otherwise empty selection
   const preselected = inferSelectedSlugs(existingPolicy, rulesMap, storedSlugs);
   if (existingPolicy) {
-    setStatus(`Updating policy for <b>${domain}</b>. Toggle on desired policies below and press Submit.`);
+    setStatus(`Updating policy for <b>${getDisplayDomain(domain)}</b>. Toggle on desired policies below and press Submit.`);
   } else {
-    setStatus(`Please select policies for <b>${domain}</b>.`);
+    setStatus(`Please select policies for <b>${getDisplayDomain(domain)}</b>.`);
   }
 
   // Restore stored parameter values for condition rules (if editing an existing policy)
@@ -733,8 +743,8 @@ function setStatus(html, { error = false } = {}) {
 
       await storageSet({ [domain]: payload });
 
-      setStatus(`Policy for <b>${domain}</b> successfully updated.`);
-      updateSubmitState();
+      const q = new URLSearchParams({ updated: "1", domain }).toString();
+      window.location.href = `agent.html?${q}`;
     } catch (err) {
       console.error(err);
       setStatus(`Failed to update policy: ${String(err.message || err)}`, { error: true });
