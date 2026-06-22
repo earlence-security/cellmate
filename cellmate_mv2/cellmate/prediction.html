@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Policy Prediction</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    body { margin:0; background:#f9fafb; color:#111827; width:320px; }
+    header{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid #e5e7eb; background:#fff; }
+    header h1{ font-size:14px; margin:0; flex:1; }
+    #back-btn{ background:transparent; border:none; font-size:14px; cursor:pointer; color:#2563eb; padding:6px 8px; border-radius:6px; }
+
+    main{ padding:12px; display:flex; flex-direction:column; gap:12px; }
+
+    .card{
+      background:#fff; border:2px solid #dbeafe; border-left:6px solid #2563eb;
+      border-radius:12px; padding:12px; box-shadow:0 6px 16px rgba(0,0,0,.06);
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .card-title{ font-size:14px; font-weight:600; color:#0f172a; }
+    .hint{ font-size:13px; color:#6b7280; }
+    .card textarea{
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    textarea{
+      width:100%; min-height:80px; resize:vertical;
+      padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; background:#fff; color:#111827;
+    }
+    .btn{ background:#2563eb; color:#fff; border:none; border-radius:8px; padding:8px 10px; font-size:13px; cursor:pointer; }
+    .btn:hover{ background:#1d4ed8; }
+    .btn.ghost{ background:transparent; color:#374151; border:1px solid #e5e7eb; }
+    .btn.ghost:hover{ background:#f3f4f6; }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+    .row{ display:flex; gap:8px; align-items:center; }
+    .row-right{ display:flex; justify-content:flex-end; gap:8px; }
+
+    .separator{ display:flex; align-items:center; gap:8px; color:#6b7280; font-size:12px; margin:4px 0; }
+    .separator::before, .separator::after{ content:""; flex:1; height:1px; background:#e5e7eb; }
+
+    .chip{ display:inline-block; padding:6px 10px; border:1px solid #e5e7eb; border-radius:9999px; background:#fff; cursor:pointer; margin:4px 6px 0 0; font-size:12px; }
+    .chip:hover{ background:#f3f4f6; }
+    .chip.disabled{ opacity:.55; cursor:default; background:#f9fafb; }
+    .chip.disabled:hover{ background:#f9fafb; }
+
+    .muted{ color:#6b7280; font-size:13px; }
+    .status{ font-size:12px; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:6px 8px; border-radius:8px; display:none; }
+    .status.error{ color:#991b1b; background:#fef2f2; border-color:#fecaca; }
+
+    select{ width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; font-size:13px; }
+
+    .key-row{ display:flex; gap:6px; align-items:center; }
+    .key-row input{ flex:1; padding:7px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; background:#fff; color:#111827; min-width:0; }
+    .key-row input:focus{ outline:none; border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,.14); }
+    .key-saved{ font-size:12px; color:#065f46; }
+  </style>
+  <script type="module" src="prediction.js"></script>
+</head>
+<body>
+  <header>
+    <button id="back-btn">← Back</button>
+    <h1>Policy Prediction</h1>
+  </header>
+
+<main>
+  <!-- API key setup (shown only when no key is stored) -->
+  <div id="apiKeyCard" class="card" style="display:none;">
+    <div class="card-title">Anthropic API Key</div>
+    <div class="hint">Required for domain and policy suggestions. Your key is stored locally in the extension.</div>
+    <div class="key-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-…" autocomplete="off" />
+      <button id="saveKeyBtn" class="btn">Save</button>
+    </div>
+    <div id="keyStatus" class="status"></div>
+  </div>
+
+  <!-- Task input -->
+  <div class="card">
+    <div class="card-title">Describe your task</div>
+    <div class="hint">We'll suggest relevant domains — click one to configure its policy.</div>
+    <textarea id="taskInput" placeholder="e.g., Create a new deploy token and comment on the first issue…"></textarea>
+    <div class="row-right">
+      <span id="keySavedLabel" class="key-saved" style="display:none;align-self:center;">Key saved ✓</span>
+      <button id="changeKeyBtn" class="btn ghost" style="display:none;">Change API key</button>
+      <button id="suggestDomainsBtn" class="btn">Get domain suggestions</button>
+    </div>
+    <div id="taskStatus" class="status"></div>
+  </div>
+
+  <!-- Predicted domain chips (shown after LLM suggest) -->
+  <div id="predictedSection" style="display:none;">
+    <div class="separator"><span>Suggested domains — click to configure policy</span></div>
+    <div id="chips" class="row" style="flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- Fallback: pick any supported domain -->
+  <div id="results" style="display:none;">
+    <div class="separator"><span>Or pick any supported domain</span></div>
+    <div class="row">
+      <select id="domainSelect"></select>
+    </div>
+    <div class="row-right">
+      <button id="predictPolicyBtn" class="btn">Configure policy</button>
+    </div>
+  </div>
+</main>
+</body>
+</html>

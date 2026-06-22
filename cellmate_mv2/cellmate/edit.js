@@ -646,8 +646,32 @@ function setStatus(html, { error = false } = {}) {
 
   const params = new URLSearchParams(location.search);
   const forcedDomain = params.get("domain");
+  const allDomains = params.get("domains") ? params.get("domains").split(",").filter(Boolean) : [];
 
-  backBtn.addEventListener("click", () => window.close());
+  backBtn.addEventListener("click", () => { window.location.href = "prediction.html"; });
+
+  // Domain switcher: shown when multiple predicted domains are available
+  if (allDomains.length > 1) {
+    const bar = document.getElementById("domain-bar");
+    const sel = document.getElementById("domain-select");
+    bar.style.display = "flex";
+    allDomains.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d;
+      sel.appendChild(opt);
+    });
+    sel.value = forcedDomain || allDomains[0];
+    sel.addEventListener("change", () => {
+      const next = new URLSearchParams({
+        domain: sel.value,
+        domains: allDomains.join(","),
+        ...(params.get("predict") ? { predict: params.get("predict") } : {}),
+        ...(params.get("task") ? { task: params.get("task") } : {}),
+      });
+      window.location.href = `edit.html?${next}`;
+    });
+  }
 
   // Pick domain: URL param > current tab
   const domain = forcedDomain || await getCurrentDomain();
@@ -717,8 +741,7 @@ function setStatus(html, { error = false } = {}) {
 
       await storageSet({ [domain]: payload });
 
-      setStatus(`Policy for <b>${domain}</b> successfully updated.`);
-      updateSubmitState();
+      window.location.href = `agent.html?updated=1&domain=${encodeURIComponent(domain)}`;
     } catch (err) {
       console.error(err);
       setStatus(`Failed to update policy: ${String(err.message || err)}`, { error: true });

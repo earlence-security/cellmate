@@ -192,15 +192,26 @@
     .btn:hover{ background:#1d4ed8; }
     .row-right{ display:flex; justify-content:flex-end; }
 
+    #domain-bar {
+      display: none; align-items: center; gap: 8px;
+      padding: 8px 12px; background: #fff; border-bottom: 1px solid #e5e7eb;
+    }
+    #domain-bar label { font-size: 12px; color: #6b7280; white-space: nowrap; }
+    #domain-bar select { flex: 1; }
+
   </style>
   <!-- Load as a module so we can import the policy engine -->
   <script type="module" src="edit.js"></script>
 </head>
 <body>
   <header>
-    <button id="back-btn" aria-label="Close">Close</button>
+    <button id="back-btn" aria-label="Close">← Back</button>
     <h1>Edit Policy</h1>
   </header>
+  <div id="domain-bar">
+    <label for="domain-select">Domain:</label>
+    <select id="domain-select"></select>
+  </div>
   <main>
     <div id="status" class="muted">Loading…</div>
     <div id="rules"></div>
